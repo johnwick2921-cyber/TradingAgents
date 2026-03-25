@@ -252,6 +252,9 @@ Macro News: {news_report}
 Sentiment: {sentiment_report}
 Fundamentals: {fundamentals_report}
 
+IMPORTANT: Start your output with "Current Price: [price from LIVE PRICE above]"
+so the final decision clearly shows what price it was based on.
+
 NOW: Execute steps 1-9 above. Be decisive. Use exact prices.
 Ground every conclusion in specific evidence from the analysts and trader."""
 

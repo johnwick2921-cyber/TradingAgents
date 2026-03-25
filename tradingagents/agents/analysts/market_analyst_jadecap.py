@@ -228,6 +228,7 @@ OUTPUT FORMAT:
 ## Summary Table
 | Item | Value |
 |---|---|
+| CURRENT PRICE | [exact price from get_live_price — ALWAYS show this first] |
 | SFP Status | CONFIRMED at price / WATCHING / NO SFP |
 | HTF Bias | |
 | Zone | Premium/Discount |

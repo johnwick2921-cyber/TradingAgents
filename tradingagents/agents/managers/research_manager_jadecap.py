@@ -270,6 +270,9 @@ Sentiment Report:
 Fundamentals Report:
 {fundamentals_report}
 
+IMPORTANT: Start your output with "Current Price: [price from LIVE PRICE above]"
+so everyone can see the price this decision is based on.
+
 NOW: Execute steps 1-10 above. Be decisive. Use exact prices.
 Do NOT default to HOLD — commit to LONG, SHORT, or NO TRADE."""
 

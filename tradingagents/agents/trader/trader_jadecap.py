@@ -233,6 +233,8 @@ HOLIDAY CHECK:
 STEP 10: FINAL DECISION
 ══════════════════════════════════════════════════════════════════
 
+IMPORTANT: Start your output with "Current Price: [price from LIVE PRICE above]"
+
 You MUST end your response with exactly one of:
 FINAL TRANSACTION PROPOSAL: **BUY**
 FINAL TRANSACTION PROPOSAL: **HOLD**
