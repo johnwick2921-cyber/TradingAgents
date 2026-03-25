@@ -451,13 +451,15 @@ def get_killzone_status(current_time: datetime = None) -> str:
 
     lines = [
         "\n## Kill Zone Status",
-        f"  Current Time (EST): {current_hm}",
+        f"  Current Time (EST): {current_hm} ({now_est.strftime('%A')})",
+        f"  Futures Market: OPEN (futures trade 23h, Sun 6PM - Fri 5PM EST)",
         f"  Inside Kill Zone: {'YES' if active_kz else 'NO'}",
     ]
     if active_kz:
         lines.append(f"  Active Zone: {active_kz}")
     else:
-        lines.append("  NO ACTIVE KILL ZONE — DO NOT TRADE")
+        lines.append("  Outside Kill Zone — no JadeCap entries until next KZ window")
+        lines.append("  Next windows: AM 9:30-11:30 | Silver Bullet 10:00-11:00 | PM 1:00-4:00 EST")
 
     # ── AMD Phase ──
     current_phase = "unknown"
@@ -483,7 +485,7 @@ def get_killzone_status(current_time: datetime = None) -> str:
     lines.append(f"\n## AMD Phase")
     lines.append(f"  Phase: {current_phase.upper()}")
     lines.append(f"  Session: {current_session or 'Between sessions'}")
-    lines.append(f"  Can Trade: {'YES — inside Kill Zone' if can_trade else 'NO — outside Kill Zone'}")
+    lines.append(f"  Can Trade: {'YES — inside Kill Zone' if can_trade else 'NO — market is OPEN but outside Kill Zone window. Wait for next KZ.'}")
     if phase_info.get("action"):
         lines.append(f"  Action: {phase_info['action']}")
     return "\n".join(lines)
