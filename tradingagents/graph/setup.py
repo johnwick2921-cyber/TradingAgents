@@ -60,7 +60,7 @@ class GraphSetup:
         tool_nodes = {}
 
         if "market" in selected_analysts:
-            if self.config.get("strategy") == "jadecap":
+            if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
                 from tradingagents.agents.analysts.market_analyst_jadecap import create_market_analyst_jadecap
                 analyst_nodes["market"] = create_market_analyst_jadecap(
                     self.quick_thinking_llm
@@ -80,7 +80,7 @@ class GraphSetup:
             tool_nodes["social"] = self.tool_nodes["social"]
 
         if "news" in selected_analysts:
-            if self.config.get("strategy") == "jadecap":
+            if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
                 from tradingagents.agents.analysts.news_analyst_jadecap import create_news_analyst_jadecap
                 analyst_nodes["news"] = create_news_analyst_jadecap(
                     self.quick_thinking_llm
@@ -100,7 +100,7 @@ class GraphSetup:
             tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
 
         # Create researcher and manager nodes
-        if self.config.get("strategy") == "jadecap":
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.researchers.bull_researcher_jadecap import create_bull_researcher_jadecap
             bull_researcher_node = create_bull_researcher_jadecap(
                 self.quick_thinking_llm, self.bull_memory
@@ -109,7 +109,7 @@ class GraphSetup:
             bull_researcher_node = create_bull_researcher(
                 self.quick_thinking_llm, self.bull_memory
             )
-        if self.config.get("strategy") == "jadecap":
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.researchers.bear_researcher_jadecap import create_bear_researcher_jadecap
             bear_researcher_node = create_bear_researcher_jadecap(
                 self.quick_thinking_llm, self.bear_memory
@@ -118,7 +118,7 @@ class GraphSetup:
             bear_researcher_node = create_bear_researcher(
                 self.quick_thinking_llm, self.bear_memory
             )
-        if self.config.get("strategy") == "jadecap":
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.managers.research_manager_jadecap import create_research_manager_jadecap
             research_manager_node = create_research_manager_jadecap(
                 self.deep_thinking_llm, self.invest_judge_memory
@@ -127,7 +127,7 @@ class GraphSetup:
             research_manager_node = create_research_manager(
                 self.deep_thinking_llm, self.invest_judge_memory
             )
-        if self.config.get("strategy") == "jadecap":
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.trader.trader_jadecap import create_trader_jadecap
             trader_node = create_trader_jadecap(self.quick_thinking_llm, self.trader_memory)
         else:
@@ -137,7 +137,7 @@ class GraphSetup:
         aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
         neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
         conservative_analyst = create_conservative_debator(self.quick_thinking_llm)
-        if self.config.get("strategy") == "jadecap":
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.managers.portfolio_manager_jadecap import create_portfolio_manager_jadecap
             portfolio_manager_node = create_portfolio_manager_jadecap(
                 self.deep_thinking_llm, self.portfolio_manager_memory

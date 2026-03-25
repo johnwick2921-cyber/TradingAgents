@@ -170,7 +170,7 @@ export default function RunDetails() {
     try {
       const result = await api(`/api/runs/${runId}/reflect`, {
         method: 'POST',
-        body: { pnl: parseFloat(reflectPnl) },
+        body: { returns_losses: parseFloat(reflectPnl) },
       });
       setReflectResult(result.message || result.lesson || 'Reflection saved.');
     } catch (err) {

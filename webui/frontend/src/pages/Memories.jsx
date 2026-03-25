@@ -146,7 +146,18 @@ export default function Memories() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      await api('/api/memories/import', { method: 'POST', body: data });
+      let importData = data;
+      if (!data.memories && typeof data === 'object') {
+        // Convert {bull: [...], bear: [...]} to {memories: [...flat]}
+        const flat = [];
+        for (const [agent, mems] of Object.entries(data)) {
+          if (Array.isArray(mems)) {
+            mems.forEach(m => flat.push({ ...m, agent_name: m.agent_name || agent }));
+          }
+        }
+        importData = { memories: flat };
+      }
+      await api('/api/memories/import', { method: 'POST', body: importData });
       await fetchMemories();
       await fetchCounts();
       showSuccess('Memories imported successfully.');

@@ -7,7 +7,7 @@ Reads: All 4 analyst reports + debate history + BM25 memory.
 Output: Evidence-based long case with specific ICT price levels.
 """
 
-from langchain_core.messages import AIMessage
+
 from tradingagents.jadecap_config import (
     JADECAP_CONFIG,
     HARD_RULES,

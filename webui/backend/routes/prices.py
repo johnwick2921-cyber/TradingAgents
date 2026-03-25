@@ -153,11 +153,9 @@ def _start_live_stream(symbols=None):
                                 if raw.upper().startswith(ticker.upper()):
                                     key = ticker
                                     break
-                    # Fallback: match by known subscribed symbols
-                    if not key and _subscribed_symbols:
-                        key = list(_subscribed_symbols)[0]  # default to first subscribed
+                    # Fallback: skip record if we can't determine the symbol
                     if not key:
-                        key = 'NQ'
+                        return
 
                     vol = int(getattr(record, 'size', 0) or 0)
 
@@ -211,8 +209,6 @@ def _get_price_databento(symbol: str) -> dict:
     # Start stream for this symbol if not running
     if not _live_stream_started and clean in _FUTURES_SYMBOLS:
         _start_live_stream(symbols=[clean])
-        import time
-        time.sleep(2)
     elif clean not in _subscribed_symbols:
         # Not subscribed — fall through to Historical/yfinance
         raise ValueError(f"{clean} not in live stream")
@@ -458,7 +454,7 @@ async def ws_price_stream(websocket: WebSocket, symbol: str):
     """Stream live price ticks via WebSocket. Falls back to polling if no Databento."""
     global _event_loop
     await websocket.accept()
-    _event_loop = asyncio.get_event_loop()
+    _event_loop = asyncio.get_running_loop()
 
     # Try to start Databento live stream
     has_databento = bool(os.environ.get("DATABENTO_API_KEY"))
@@ -504,7 +500,7 @@ def _get_price_for_ws(symbol: str) -> dict:
     """Get price from any available source (called from WS handler)."""
     # Try Databento cache first
     clean = symbol.upper().replace("=F", "").strip()
-    key = "MNQ" if clean == "MNQ" else "NQ"
+    key = clean
     with _live_lock:
         cached = _live_prices.get(key)
     if cached:

@@ -1314,6 +1314,8 @@ def calculate_contracts(stop_points: float, instrument: str = "NQ") -> int:
     Returns:
         Number of contracts (minimum 1).
     """
+    if stop_points <= 0:
+        return 1
     point_value = INSTRUMENTS.get(instrument, INSTRUMENTS["NQ"])["point_value"]
     return max(1, int(RISK["max_loss_per_trade"] / (stop_points * point_value)))
 

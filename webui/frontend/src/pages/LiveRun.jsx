@@ -31,8 +31,9 @@ export default function LiveRun() {
     let cancelled = false;
     (async () => {
       try {
-        const run = await api(`/api/runs/${runId}`);
+        const data = await api(`/api/runs/${runId}`);
         if (cancelled) return;
+        const run = data.run || data;
         if (run.status === 'completed') {
           navigate(`/runs/${runId}`, { replace: true });
           return;

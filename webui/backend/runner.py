@@ -36,6 +36,9 @@ def _register_deepseek_provider():
     """
     from tradingagents.llm_clients import openai_client, factory
 
+    if getattr(factory.create_llm_client, '_deepseek_patched', False):
+        return
+
     # 1. Add to _PROVIDER_CONFIG so get_llm() uses the right URL/key
     #    and does NOT set use_responses_api
     if "deepseek" not in openai_client._PROVIDER_CONFIG:
@@ -55,6 +58,7 @@ def _register_deepseek_provider():
         return _original(provider, model, base_url, **kwargs)
 
     factory.create_llm_client = _patched_create
+    _patched_create._deepseek_patched = True
 
     # 3. Also patch the module-level import in trading_graph
     import tradingagents.graph.trading_graph as tg_mod
@@ -693,7 +697,8 @@ class RunnerManager:
         neu_hist = (risk_state.get("neutral_history") or "").strip()
         judge = (risk_state.get("judge_decision") or "").strip()
 
-        if agg_hist:
+        if agg_hist and agg_hist != report_sections.get("_agg_hist"):
+            report_sections["_agg_hist"] = agg_hist
             self.add_event({
                 "type": "agent_status",
                 "data": {"agent": "Aggressive Analyst", "status": "in_progress"},
@@ -705,7 +710,8 @@ class RunnerManager:
                 "data": {"section": "final_trade_decision", "content": content},
             })
 
-        if con_hist:
+        if con_hist and con_hist != report_sections.get("_con_hist"):
+            report_sections["_con_hist"] = con_hist
             self.add_event({
                 "type": "agent_status",
                 "data": {"agent": "Conservative Analyst", "status": "in_progress"},
@@ -717,7 +723,8 @@ class RunnerManager:
                 "data": {"section": "final_trade_decision", "content": content},
             })
 
-        if neu_hist:
+        if neu_hist and neu_hist != report_sections.get("_neu_hist"):
+            report_sections["_neu_hist"] = neu_hist
             self.add_event({
                 "type": "agent_status",
                 "data": {"agent": "Neutral Analyst", "status": "in_progress"},
@@ -729,7 +736,8 @@ class RunnerManager:
                 "data": {"section": "final_trade_decision", "content": content},
             })
 
-        if judge:
+        if judge and judge != report_sections.get("_risk_judge"):
+            report_sections["_risk_judge"] = judge
             content = f"### Portfolio Manager Decision\n{judge}"
             report_sections["final_trade_decision"] = content
             self.add_event({

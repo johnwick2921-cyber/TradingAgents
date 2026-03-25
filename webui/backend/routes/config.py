@@ -162,7 +162,13 @@ async def get_settings() -> Dict[str, Any]:
     async with get_db() as db:
         cursor = await db.execute("SELECT key, value FROM settings")
         rows = await cursor.fetchall()
-    return {row["key"]: json.loads(row["value"]) for row in rows}
+    result = {}
+    for row in rows:
+        try:
+            result[row["key"]] = json.loads(row["value"])
+        except (ValueError, TypeError):
+            result[row["key"]] = row["value"]
+    return result
 
 
 @router.put("/settings")

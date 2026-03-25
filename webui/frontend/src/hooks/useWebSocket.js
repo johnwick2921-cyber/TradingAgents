@@ -17,7 +17,7 @@ export function useWebSocket(url) {
     }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}${url}`;
+    const wsUrl = `${protocol}//${window.location.host}${url}?last_event_id=${eventIdRef.current}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => setConnected(true);

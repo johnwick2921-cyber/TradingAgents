@@ -146,7 +146,7 @@ def get_databento_ohlcv(symbol: str, start_date: str, end_date: str, timeframe: 
         rename_map = {}
         for col in df.columns:
             col_lower = col.lower()
-            if col_lower == "open" or col_lower == "open":
+            if col_lower == "open":
                 rename_map[col] = "Open"
             elif col_lower == "high":
                 rename_map[col] = "High"
