@@ -382,6 +382,67 @@ def get_contract_size(
 # TOOL 6 — get_live_price
 # ─────────────────────────────────────────────────────────────────────────────
 
+
+def fetch_live_price(symbol: str) -> str:
+    """Fetch current price as a plain Python function (no @tool decorator).
+
+    Use this from agent node functions to embed price into prompt text.
+    Same logic as the @tool get_live_price but callable without LLM tool-calling.
+    """
+    import os
+    import requests
+
+    clean = symbol.upper().replace("=F", "").strip()
+
+    # Method 1: WebUI live price endpoint
+    try:
+        resp = requests.get(f"http://127.0.0.1:8000/api/prices/{clean}", timeout=3)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("price"):
+                return (
+                    f"CURRENT PRICE: {clean} = {data['price']:.2f} "
+                    f"(source: {data.get('source', 'unknown')}, "
+                    f"updated: {data.get('updated', 'N/A')})"
+                )
+    except Exception:
+        pass
+
+    # Method 2: Databento Historical
+    api_key = os.environ.get("DATABENTO_API_KEY", "")
+    if api_key:
+        try:
+            import databento as dbn
+            from datetime import datetime, timedelta, timezone
+            client = dbn.Historical(key=api_key)
+            end = datetime.now(timezone.utc) - timedelta(minutes=15)
+            start = end - timedelta(minutes=10)
+            db_sym = "MNQ.c.0" if clean == "MNQ" else "NQ.c.0"
+            records = list(client.timeseries.get_range(
+                dataset="GLBX.MDP3", schema="ohlcv-1m",
+                symbols=[db_sym], stype_in="continuous",
+                start=start.strftime("%Y-%m-%dT%H:%M"),
+                end=end.strftime("%Y-%m-%dT%H:%M"), limit=5,
+            ))
+            if records:
+                price = records[-1].close / 1e9
+                return f"CURRENT PRICE: {clean} = {price:.2f} (Databento, 15min delayed)"
+        except Exception:
+            pass
+
+    # Method 3: yfinance fallback
+    try:
+        import yfinance as yf
+        ticker_str = f"{clean}=F" if clean in ("NQ", "MNQ", "ES", "YM", "RTY") else clean
+        hist = yf.Ticker(ticker_str).history(period="1d", interval="1m")
+        if not hist.empty:
+            return f"CURRENT PRICE: {clean} = {float(hist.iloc[-1]['Close']):.2f} (yfinance, delayed)"
+    except Exception:
+        pass
+
+    return f"CURRENT PRICE: {clean} = unavailable"
+
+
 @tool
 def get_live_price(
     symbol: Annotated[str, "Ticker symbol — use the exact ticker from your analysis (e.g. NQ, MNQ, ES, AAPL, NVDA)"],
