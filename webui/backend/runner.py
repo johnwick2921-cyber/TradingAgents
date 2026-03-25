@@ -550,6 +550,16 @@ class RunnerManager:
                 stats=stats,
             )
 
+            # Use the framework's built-in reflect_and_remember to save memories
+            # Pass 0 as returns since we don't know P&L yet
+            try:
+                graph.reflect_and_remember(0)
+                logger.info("reflect_and_remember completed for run %s", run_id)
+                # Persist the in-memory BM25 memories to SQLite
+                self._persist_memories_to_db(run_id, graph)
+            except Exception as e:
+                logger.warning("reflect_and_remember failed: %s", e)
+
             self.add_event({
                 "type": "complete",
                 "data": {
@@ -771,6 +781,7 @@ class RunnerManager:
         Runs in the background thread, so we create a new event loop for
         the async database calls.
         """
+        print(f"\n>>> _save_results CALLED for {run_id[:12]}... keys={[k for k in final_state.keys() if k != 'messages']}", flush=True)
         loop = asyncio.new_event_loop()
         try:
             loop.run_until_complete(
@@ -784,7 +795,54 @@ class RunnerManager:
             loop.close()
 
         # Auto-save memories in a SEPARATE event loop to avoid conflicts
+        print(f"\n>>> ENTERING _auto_save_memories for {run_id[:12]}...", flush=True)
         self._auto_save_memories(run_id, final_state, decision)
+        print(f">>> EXITED _auto_save_memories for {run_id[:12]}", flush=True)
+
+    def _persist_memories_to_db(self, run_id: str, graph) -> None:
+        """Sync BM25 memories from the graph to SQLite after reflect_and_remember."""
+        import sqlite3
+        from webui.backend.database import DB_PATH
+        from datetime import datetime as _dt, timezone as _tz
+        now = _dt.now(_tz.utc).isoformat()
+
+        mem_map = {
+            "bull": graph.bull_memory,
+            "bear": graph.bear_memory,
+            "trader": graph.trader_memory,
+            "invest_judge": graph.invest_judge_memory,
+            "portfolio_manager": graph.portfolio_manager_memory,
+        }
+
+        db = sqlite3.connect(str(DB_PATH))
+        try:
+            # Get existing memory count per agent for this run
+            existing = db.execute(
+                "SELECT agent_name, count(*) FROM memories WHERE run_id = ? GROUP BY agent_name",
+                (run_id,)
+            ).fetchall()
+            existing_map = {r[0]: r[1] for r in existing}
+
+            count = 0
+            for agent_name, mem in mem_map.items():
+                if existing_map.get(agent_name, 0) > 0:
+                    continue  # Already saved for this run
+                # Get the latest memory entry (the one just added by reflect_and_remember)
+                if mem.documents and mem.recommendations:
+                    situation = mem.documents[-1][:2000]
+                    recommendation = mem.recommendations[-1][:2000]
+                    db.execute(
+                        "INSERT INTO memories (agent_name, situation, recommendation, run_id, created_at) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        (agent_name, situation, recommendation, run_id, now),
+                    )
+                    count += 1
+            db.commit()
+            logger.info("Persisted %d memories to SQLite for run %s", count, run_id)
+        except Exception as e:
+            logger.warning("Failed to persist memories: %s", e)
+        finally:
+            db.close()
 
     def _auto_save_memories(self, run_id: str, final_state: Dict[str, Any], decision: str) -> None:
         """Save memories from completed run to SQLite using sync sqlite3 (no async issues)."""
@@ -958,8 +1016,40 @@ class RunnerManager:
 
             await db.commit()
 
-        # NOTE: Memory auto-save is handled by _auto_save_memories() in a separate event loop
-        # (called from _save_results after this function completes)
+            # Auto-save memories using the SAME db connection (no separate event loop)
+            try:
+                from datetime import datetime as _dt, timezone as _tz
+                _now = _dt.now(_tz.utc).isoformat()
+
+                situation = "\n\n".join(
+                    final_state.get(k, "") for k in
+                    ["market_report", "news_report", "sentiment_report"]
+                    if final_state.get(k)
+                )[:2000]
+
+                if situation:
+                    agent_reports = {
+                        "bull": final_state.get("investment_plan", ""),
+                        "bear": final_state.get("investment_plan", ""),
+                        "trader": final_state.get("trader_investment_plan", ""),
+                        "invest_judge": final_state.get("investment_plan", ""),
+                        "portfolio_manager": final_state.get("final_trade_decision", ""),
+                    }
+                    mem_count = 0
+                    for agent_name, content in agent_reports.items():
+                        if not content:
+                            continue
+                        recommendation = f"Signal: {decision}. Analysis: {content[:500]}"
+                        await db.execute(
+                            "INSERT INTO memories (agent_name, situation, recommendation, run_id, created_at) "
+                            "VALUES (?, ?, ?, ?, ?)",
+                            (agent_name, situation, recommendation, run_id, _now),
+                        )
+                        mem_count += 1
+                    await db.commit()
+                    logger.info("Auto-saved %d memories for run %s", mem_count, run_id)
+            except Exception as mem_err:
+                logger.warning("Memory auto-save failed: %s", mem_err)
 
     def _save_failure(
         self,
