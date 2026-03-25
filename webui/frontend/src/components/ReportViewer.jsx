@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Markdown from 'react-markdown';
 
-export default function ReportViewer({ title, content, defaultExpanded = false }) {
+export default function ReportViewer({ title, content, defaultExpanded = true }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
 
