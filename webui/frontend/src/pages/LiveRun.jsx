@@ -300,7 +300,7 @@ export default function LiveRun() {
 
       {/* Bottom: All completed reports */}
       {reports.map((r, i) => (
-        <ReportViewer key={i} title={r.title} content={r.content} />
+        <ReportViewer key={i} title={r.title} content={r.content} defaultExpanded={false} />
       ))}
 
       {/* Status bar */}
