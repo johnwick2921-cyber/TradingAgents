@@ -459,12 +459,14 @@ def get_killzone_status(current_time: datetime = None) -> str:
                 break
 
     phase_info = AMD.get(current_phase, {})
-    can_trade = current_phase == "distribution"
+    # Can Trade = inside a Kill Zone AND in distribution phase
+    # Kill Zone check is the primary gate; AMD phase is informational
+    can_trade = active_kz is not None
 
     lines.append(f"\n## AMD Phase")
     lines.append(f"  Phase: {current_phase.upper()}")
-    lines.append(f"  Session: {current_session or 'N/A'}")
-    lines.append(f"  Can Trade: {'YES' if can_trade else 'NO'}")
+    lines.append(f"  Session: {current_session or 'Between sessions'}")
+    lines.append(f"  Can Trade: {'YES — inside Kill Zone' if can_trade else 'NO — outside Kill Zone'}")
     if phase_info.get("action"):
         lines.append(f"  Action: {phase_info['action']}")
     return "\n".join(lines)

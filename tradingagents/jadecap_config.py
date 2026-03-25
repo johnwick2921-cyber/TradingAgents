@@ -149,9 +149,19 @@ LIVE_PRICE = {
 # =====================================================================
 
 SESSIONS = {
+    # NQ/ES futures trade 23 hours: Sun 6PM - Fri 5PM EST.
+    # Only CLOSED 5:00 PM - 6:00 PM EST daily (1-hour maintenance).
+    # Sessions below are ICT analysis windows, NOT market hours.
+    "closed": {
+        "name":      "Market Closed (Daily Maintenance)",
+        "start":     "17:00",
+        "end":       "18:00",
+        "amd_phase": "closed",
+        "note":      "Futures closed for 1-hour daily maintenance. No trading.",
+    },
     "asia": {
         "name":      "Asia Session",
-        "start":     "20:00",
+        "start":     "18:00",
         "end":       "00:00",
         "amd_phase": "accumulation",
         "note": (
@@ -160,6 +170,13 @@ SESSIONS = {
             "JadeCap does NOT trade this session. "
             "Asian range H/L used as NY liquidity raid reference."
         ),
+    },
+    "asia_late": {
+        "name":      "Late Asia / Pre-London",
+        "start":     "00:00",
+        "end":       "02:00",
+        "amd_phase": "accumulation",
+        "note":      "Continuation of Asia accumulation. Range consolidation.",
     },
     "london": {
         "name":      "London Session",
@@ -173,15 +190,27 @@ SESSIONS = {
             "JadeCap uses London to confirm or deny daily bias."
         ),
     },
-    "ny_am": {
-        "name":             "New York AM",
-        "start":            "09:30",
-        "end":              "16:00",
+    "london_late": {
+        "name":      "Late London / Pre-NY",
+        "start":     "05:00",
+        "end":       "08:00",
+        "amd_phase": "manipulation",
+        "note": (
+            "London continuation. Consolidation before NY open. "
+            "Mark any London FVGs left on chart as potential NY draw targets."
+        ),
+    },
+    "ny": {
+        "name":             "New York Session",
+        "start":            "08:00",
+        "end":              "17:00",
         "pre_market_start": "08:00",
         "amd_phase":        "distribution",
         "note": (
             "True directional move begins. Primary JadeCap trading session. "
-            "At 8:00 AM EST, begin mapping 1H swing points for SFP detection."
+            "At 8:00 AM EST, begin mapping 1H swing points for SFP detection. "
+            "Futures remain open until 5:00 PM — no forced close at 4:00 PM. "
+            "Hard rule: close day-trade positions by 4:00 PM (JadeCap rule, not market close)."
         ),
         "ndog_note": (
             "Mark NDOG (5PM-6PM gap) 50% level before session. "
