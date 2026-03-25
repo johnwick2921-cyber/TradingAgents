@@ -299,8 +299,8 @@ export default function LiveRun() {
       </div>
 
       {/* Bottom: All completed reports */}
-      {reports.map((r, i) => (
-        <ReportViewer key={i} title={r.title} content={r.content} defaultExpanded={false} />
+      {reports.map((r) => (
+        <ReportViewer key={r.title} title={r.title} content={r.content} defaultExpanded={false} />
       ))}
 
       {/* Status bar */}
