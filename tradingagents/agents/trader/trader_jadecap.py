@@ -91,7 +91,7 @@ Sentiment Report:
 Fundamentals Report:
 {fundamentals_report}
 
-Execute all 10 steps below and output a final trade plan.""",
+Execute all steps below and output a final trade plan.""",
         }
 
         messages = [
@@ -169,6 +169,11 @@ Target 2: PDH (longs) or PDL (shorts)
 
 If T1 distance < minimum for {min_rr}:1 R:R -> NO TRADE.
 
+SET AND FORGET — once stops and targets are placed, do NOT move them discretionarily.
+Only permitted adjustment: move stop to breakeven AFTER Target 1 is hit.
+No mid-trade tinkering. No widening stops. No moving targets closer.
+"Set and forget once your stops and targets are placed." — JadeCap
+
 ══════════════════════════════════════════════════════════════════
 STEP 7: KILL ZONE WINDOW + HARD CLOSE
 ══════════════════════════════════════════════════════════════════
@@ -190,12 +195,23 @@ STEP 8: FINAL NEWS RISK CHECK
 - If news risk is elevated, reduce contracts by 50% or HOLD entirely.
 
 ══════════════════════════════════════════════════════════════════
+STEP 8b: CONSECUTIVE LOSS CHECK
+══════════════════════════════════════════════════════════════════
+
+After 2 consecutive losses, CUT RISK IN HALF until account returns to starting equity.
+- Check if the previous 2 trades were losses.
+- If YES → reduce calculated contracts by 50% (round down, minimum 1).
+- This "buys more chips to stay in the game" during drawdowns — JadeCap Rule.
+- After 3 consecutive losses → STOP TRADING for the day, reassess tomorrow.
+- Return to full risk only when account is back to starting equity.
+
+══════════════════════════════════════════════════════════════════
 STEP 9: OUTPUT IN TRADE FORMAT
 ══════════════════════════════════════════════════════════════════
 
 {TRADE_OUTPUT_FORMAT}
 
-10-ITEM CHECKLIST — final status:
+PRE-TRADE CHECKLIST — final status:
 {checklist_str}
 
 HOLIDAY CHECK:
@@ -215,7 +231,11 @@ FINAL TRANSACTION PROPOSAL: **SELL**
 
 BUY = execute the LONG plan.
 SELL = execute the SHORT plan.
-HOLD = no trade — wait for next setup.""",
+HOLD = no trade — wait for next setup.
+
+NOTE: A stopped-out trade ≠ failed setup. The stop may have been too tight for
+market volatility. Review structural invalidation level, not P&L. Do not abandon
+the model after a loss. Journal the setup and assess execution separately from outcome.""",
             },
             context,
         ]

@@ -173,7 +173,7 @@ Active Kill Zones:
 - Is there a valid FVG or OB to enter on? State exact price range.
 
 ══════════════════════════════════════════════════════════════════
-STEP 5: 10-ITEM CHECKLIST — ALL MUST PASS
+STEP 5: PRE-TRADE CHECKLIST — ALL MUST PASS
 ══════════════════════════════════════════════════════════════════
 
 {checklist_str}

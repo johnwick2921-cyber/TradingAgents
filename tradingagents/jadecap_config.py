@@ -26,8 +26,8 @@ strategy, organized into 27 sections:
  15. IPDA                 — Interbank Price Delivery Algorithm
  16. ENTRY_MODELS         — 6 entry models (0-5) with full rules
  17. RISK                 — Risk management parameters
- 18. A_PLUS_SCORING       — 7-criteria setup quality scoring
- 19. HARD_RULES           — 20 non-negotiable rules for all agents
+ 18. A_PLUS_SCORING       — Weighted 1-10 setup quality scoring
+ 19. HARD_RULES           — 21 non-negotiable rules for all agents
  20. BULL_SETUP           — Bullish long setup criteria
  21. BEAR_SETUP           — Bearish short setup criteria
  22. CHECKLIST            — 14-item pre-trade checklist
@@ -78,7 +78,7 @@ INSTRUMENTS = {
 # Each prop firm has different contract limits, drawdown rules, and
 # profit targets. base_risk_pct is the standard per-trade risk (0.25%
 # of account). a_plus_risk_pct is used only when the A+ scoring system
-# gives a perfect 7/7 score. trailing_drawdown is the dollar amount
+# gives a perfect 8-10/10 score. trailing_drawdown is the dollar amount
 # of the trailing drawdown threshold for the evaluation account.
 # =====================================================================
 
@@ -1185,8 +1185,14 @@ RISK = {
     "a_plus_risk_pct":             0.50,
     "midday_exit_rule":            True,
     "max_losing_streak_before_stop": 3,
+    "half_risk_after_consecutive_losses": 2,
+    "half_risk_note": (
+        "After 2 consecutive losses, cut risk per trade in half "
+        "until account returns to starting equity. "
+        "This buys more chips to stay in the game."
+    ),
     "scaling_note": (
-        "0.25% standard. Scale to 0.5% ONLY on 7/7 A+ setups."
+        "0.25% standard. Scale to 0.5% ONLY on 8-10/10 A+ setups."
     ),
 
     "contract_formula": {
@@ -1213,75 +1219,105 @@ RISK = {
 
 
 # =====================================================================
-# 18. A+ SCORING — 7-criteria setup quality scoring
+# 18. A+ SCORING — Weighted 1-10 setup quality scoring
 # =====================================================================
-# The A+ scoring system objectively grades every potential trade on
-# 7 criteria. Each criterion is binary (pass/fail). The total score
-# determines position sizing:
+# Matches JadeCap playbook Section 11. The A+ scoring system uses
+# WEIGHTED criteria to grade every potential trade on a 1-10 scale.
+# High-value confluence items are worth +2 points, standard items +1,
+# and risk factors deduct -1. This weighted approach ensures HTF
+# alignment and institutional footprint are valued more than timing.
 #
-#   7/7 = A+ Setup  -> 0.50% risk (full size)
-#   5-6 = Standard  -> 0.25% risk (half size)
-#   <5  = NO TRADE  -> 0% risk (skip entirely)
-#
-# This system prevents overtrading on mediocre setups and ensures
-# maximum capital is deployed only on the highest-conviction trades.
+# Max possible: 9 (all positives, no deductions)
+# Thresholds:
+#   8-10 = A+ Setup  -> 0.50% risk (scale up, full commitment)
+#   6-7  = Standard  -> 0.25% risk (normal size)
+#   4-5  = Marginal  -> 0.125% risk (reduce size, consider passing)
+#   <4   = NO TRADE  -> 0% risk (skip entirely)
 # =====================================================================
 
 A_PLUS_SCORING = {
-    "description": "7-criteria scoring system for setup quality",
+    "description": "Weighted 1-10 scoring system — matches JadeCap playbook Section 11",
     "criteria": [
         {
-            "id":     "htf_bias",
-            "name":   "HTF Bias Confirmed",
-            "detail": "Weekly/Daily structure aligned with trade direction",
+            "id":     "htf_ltf_align",
+            "name":   "HTF + LTF Alignment",
+            "weight": +2,
+            "detail": "Weekly/Daily and 1H/15m all point same direction",
         },
         {
-            "id":     "correct_zone",
-            "name":   "Price in Correct Zone",
-            "detail": "Discount for longs, premium for shorts",
-        },
-        {
-            "id":     "liquidity_swept",
-            "name":   "Liquidity Swept (SFP)",
+            "id":     "fvg_at_htf_poi",
+            "name":   "FVG at HTF POI",
+            "weight": +2,
             "detail": (
-                "1H SFP confirmed — swing point breached "
-                "and candle closed back inside"
+                "FVG entry coincides with 4H or Daily point of interest — "
+                "institutional footprint on multiple TFs"
             ),
         },
         {
-            "id":     "ltf_fvg",
-            "name":   "LTF FVG Present",
-            "detail": "5m/15m FVG aligned with bias inside Kill Zone",
+            "id":     "liq_swept",
+            "name":   "Clear Liquidity Sweep First",
+            "weight": +2,
+            "detail": (
+                "Prior session H/L or equal H/L raided BEFORE entry — "
+                "AMD manipulation phase confirmed"
+            ),
+        },
+        {
+            "id":     "correct_zone",
+            "name":   "Discount / Premium Zone",
+            "weight": +1,
+            "detail": "Price clearly in discount (longs) or premium (shorts)",
         },
         {
             "id":     "kill_zone",
-            "name":   "Inside Kill Zone",
-            "detail": "AM 9:30-11:30 or PM 1:00-4:00 or Silver Bullet window",
+            "name":   "Inside Kill Zone Window",
+            "weight": +1,
+            "detail": "Entry forms during AM KZ or Silver Bullet window",
         },
         {
-            "id":     "min_2r",
-            "name":   "Minimum 2R Available",
-            "detail": "Entry to target offers at least 2:1 R:R",
+            "id":     "three_r_plus",
+            "name":   "3R+ Available",
+            "weight": +1,
+            "detail": "Setup offers 3:1 or better R:R to structural target",
         },
         {
-            "id":     "macro_clear",
-            "name":   "Macro Clear",
-            "detail": "No HIGH impact news event in current Kill Zone window",
+            "id":     "conflicting_struct",
+            "name":   "No Conflicting Structure",
+            "weight": -1,
+            "detail": (
+                "DEDUCT if unfilled FVGs or unswept liquidity pools "
+                "between entry and target could interrupt the move"
+            ),
+        },
+        {
+            "id":     "news_risk",
+            "name":   "High-Impact News Within 30 Min",
+            "weight": -1,
+            "detail": (
+                "DEDUCT if FOMC, NFP, or CPI releasing during trade window — "
+                "reduce size or stand aside"
+            ),
         },
     ],
+    "max_score": 9,
     "sizing": {
         "a_plus": {
-            "score": "7/7",
+            "range": "8-10",
             "risk":  "0.50%",
-            "label": "A+ Setup — full size",
+            "label": "A+ Setup — scale risk, full commitment",
         },
         "standard": {
-            "score": "5-6/7",
+            "range": "6-7",
             "risk":  "0.25%",
-            "label": "Standard — half size",
+            "label": "Standard — 0.25% risk, normal execution",
+        },
+        "marginal": {
+            "range": "4-5",
+            "risk":  "0.125%",
+            "label": "Marginal — reduce size, consider passing",
         },
         "no_trade": {
-            "score": "below 5/7",
+            "range": "below 4",
             "risk":  "0%",
             "label": "NO TRADE — skip entirely",
         },
@@ -1321,7 +1357,7 @@ def calculate_contracts(stop_points: float, instrument: str = "NQ") -> int:
 
 
 # =====================================================================
-# 19. HARD RULES — 20 non-negotiable rules injected into every agent
+# 19. HARD RULES — 21 non-negotiable rules injected into every agent
 # =====================================================================
 # These rules are absolute constraints. No agent, no scoring system,
 # and no market condition can override them. They are injected into
@@ -1355,7 +1391,8 @@ HARD_RULES = [
     "Unfilled Silver Bullet limit orders CANCELED when window closes — never leave orders open.",
     "No new entries 11:30 AM – 1:00 PM EST — midday chop zone. Exit stalling trades.",
     "Stand aside or reduce size 75% on holiday/low-volume days — SFPs are unreliable.",
-    "A+ score below 5/7 = NO TRADE. Do not override. Discipline IS the edge.",
+    "A+ score below 4/10 = NO TRADE. Do not override. Discipline IS the edge.",
+    "After 2 consecutive losses, CUT RISK IN HALF until account returns to starting equity — buys more chips to stay in the game.",
 ]
 
 
@@ -1429,7 +1466,7 @@ BEAR_SETUP = {
 # Expanded from 10 to 14 items in v2. The 4 new items enforce:
 #   - SFP confirmation on 1H before any LTF entry
 #   - Draw on Liquidity identification (know the target)
-#   - A+ score calculation (minimum 5/7 to proceed)
+#   - A+ score calculation (minimum 4/10 to proceed)
 #   - Midday chop zone avoidance (no entries 11:30-1:00)
 #
 # Each item has a required flag. apply_settings() can override
@@ -1513,7 +1550,7 @@ CHECKLIST = [
     {
         "id":          "a_plus_score",
         "description": "A+ Score Calculated",
-        "detail":      "A+ Score Calculated — minimum 5/7 to proceed",
+        "detail":      "A+ Score Calculated — minimum 4/10 to proceed, 8+/10 for full size",
         "required":    True,
     },
     {
@@ -1582,7 +1619,7 @@ Risk:         $[amount] ([contracts] x [points] x $[point_value])
 Contracts:    [number]
 R:R Ratio:    [number]:1
 Kill Zone:    AM 9:30-11:30 / Silver Bullet 10-11 / PM 1:00-4:00 / SB2 2-3
-A+ Score:     [X/7] — [Full Size / Half Size / NO TRADE]
+A+ Score:     [X/10] — [Full Size / Half Size / Marginal / NO TRADE]
 SFP Status:   CONFIRMED at [price] on 1H / NOT YET / NO SFP TODAY
 Draw on Liquidity: [target price] — [reason]
 NDOG Level:   [price] (50% CE) / N/A

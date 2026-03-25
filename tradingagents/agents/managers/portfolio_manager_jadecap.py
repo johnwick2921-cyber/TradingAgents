@@ -127,7 +127,7 @@ STEP 3: APPLY 5-TIER ICT RATING SCALE
 
 Rate the trade using exactly ONE of these tiers:
 
-**BUY**: Full ICT confluence confirmed. All 10 checklist items PASS.
+**BUY**: Full ICT confluence confirmed. All checklist items PASS.
   Stacked FVGs across timeframes. Silver Bullet FVG confirmed.
   ADX > 25 (strong trend). Multi-TF confluence (4H + 1H + 15m agree).
   Bull setup requirements:
@@ -146,7 +146,7 @@ Rate the trade using exactly ONE of these tiers:
   Some checklist items pass but key requirements fail.
   Reduce exposure to minimum or exit existing position partially.
 
-**SELL**: Full SHORT ICT confluence confirmed. All 10 checklist items PASS bearish.
+**SELL**: Full SHORT ICT confluence confirmed. All checklist items PASS bearish.
   Stacked bearish FVGs. Silver Bullet FVG confirmed on short side.
   ADX > 25. Multi-TF confluence bearish (4H + 1H + 15m all bearish).
   Bear setup requirements:
@@ -174,6 +174,11 @@ ADX adjustment:
   - ADX > 25 -> full contracts.
   - ADX 20-25 -> 50% contracts.
   - ADX < 20 -> HOLD (no trade).
+Consecutive loss adjustment:
+  - If 2 consecutive losses → cut contracts in half (round down, min 1).
+  - If 3 consecutive losses → STOP — override to HOLD regardless of setup.
+  - Return to full risk only when account returns to starting equity.
+
 Final contracts: [X] (round DOWN, minimum 1)
 
 Contracts = ${max_loss} / (stop_points x ${point_value})
@@ -190,6 +195,9 @@ STEP 6: INCLUDE ENTRY, STOP, TARGET, CONTRACTS, R:R
 - Contracts: [number — adjusted for risk consensus and ADX]
 - R:R Ratio: [number]:1 (must be >= {min_rr}:1)
 
+SET AND FORGET — once stops and targets are placed, do NOT move them.
+Only move stop to breakeven AFTER Target 1 hit. No discretionary adjustments.
+
 Active Kill Zones:
 {kz_str}
 
@@ -204,7 +212,7 @@ or the risk debate reached no consensus:
 - State which agent(s) flagged NO TRADE and why.
 
 ══════════════════════════════════════════════════════════════════
-STEP 8: 10-ITEM CHECKLIST — FINAL STATUS
+STEP 8: PRE-TRADE CHECKLIST — FINAL STATUS
 ══════════════════════════════════════════════════════════════════
 
 {checklist_str}

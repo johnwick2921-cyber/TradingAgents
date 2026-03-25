@@ -166,23 +166,25 @@ Has liquidity been swept this session? Displacement candle present?
 No sweep AND no displacement = WAITING. Do not enter.
 
 STEP 9 — CHECKLIST + FINAL ASSESSMENT
-All 10 items must PASS:
+ALL items must PASS:
 {checklist_str}
 Any FAIL = NO TRADE with specific reason.
 
-A+ SETUP SCORING — rate this setup 1-7:
-[1] HTF Bias Confirmed (Weekly/Daily aligned): PASS/FAIL
-[2] Price in Correct Zone (discount for longs, premium for shorts): PASS/FAIL
-[3] Liquidity Swept — SFP Confirmed on 1H: PASS/FAIL
-[4] LTF FVG Present (5m/15m aligned with bias): PASS/FAIL
-[5] Inside Kill Zone or Silver Bullet: PASS/FAIL
-[6] Minimum 2R Available to structural target: PASS/FAIL
-[7] Macro Clear (no HIGH impact news in window): PASS/FAIL
+A+ SETUP SCORING — rate this setup 1-10 (weighted):
+[+2] HTF + LTF Alignment (Weekly/Daily AND 1H/15m all agree): YES/NO
+[+2] FVG at HTF POI (entry coincides with 4H/Daily point of interest): YES/NO
+[+2] Clear Liquidity Sweep (SFP confirmed, prior H/L raided): YES/NO
+[+1] Price in Correct Zone (discount for longs, premium for shorts): YES/NO
+[+1] Inside Kill Zone or Silver Bullet window: YES/NO
+[+1] 3R+ Available to structural target: YES/NO
+[-1] Conflicting Structure (unfilled FVGs or unswept liq between entry and target): YES/NO
+[-1] High-Impact News within 30 min (FOMC/NFP/CPI): YES/NO
 
-SCORE: X/7
-→ 7/7 = A+ Setup: FULL SIZE (0.5% risk)
-→ 5-6/7 = Standard: HALF SIZE (0.25% risk)
-→ Below 5/7 = NO TRADE — skip entirely
+SCORE: X/10 (sum positive weights for YES items, subtract negative weights for YES items)
+→ 8-10 = A+ Setup: FULL SIZE (0.5% risk)
+→ 6-7 = Standard: HALF SIZE (0.25% risk)
+→ 4-5 = Marginal: QUARTER SIZE or PASS
+→ Below 4 = NO TRADE — skip entirely
 
 BULLISH LONG — all required:
 {bull_req}
@@ -206,8 +208,8 @@ OUTPUT FORMAT:
 ## Order Flow (CHoCH/BOS direction)
 ## Kill Zone Status (incl. Silver Bullet, Midday Avoidance)
 ## Entry Setup (model, price, stop, target, contracts, R:R)
-## Pre-Trade Checklist (10/10 PASS or which FAILED)
-## A+ Score (X/7, sizing recommendation)
+## Pre-Trade Checklist (ALL PASS or which FAILED)
+## A+ Score (X/10, sizing recommendation)
 ## Summary Table
 | Item | Value |
 |---|---|
@@ -221,11 +223,11 @@ OUTPUT FORMAT:
 | Target | price |
 | Contracts | number |
 | R:R | ratio |
-| A+ Score | X/7 — Full/Half/No Trade |
+| A+ Score | X/10 — Full/Half/Marginal/No Trade |
 | Draw on Liquidity | price — reason |
 | NDOG CE Level | price / N/A |
 | NWOG CE Level | price / N/A (Monday only) |
-| Checklist | X/10 |
+| Checklist | X/14 PASS |
 | FINAL CALL | VALID TRADE / NO TRADE |
 
 Append a Markdown table summarizing all key data points."""

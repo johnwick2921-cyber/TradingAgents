@@ -245,15 +245,16 @@ YOUR ARGUMENT MUST COVER ALL OF THESE:
    - Hard close by 4:00 PM EST: CONFIRM
    - If ANY FAIL -> output NO LONG SETUP
 
-10.5 A+ SCORE CALCULATION
-   [1] HTF Bias Bullish: PASS/FAIL
-   [2] Price in Discount: PASS/FAIL
-   [3] SFP Confirmed on 1H: PASS/FAIL
-   [4] Bullish FVG on LTF: PASS/FAIL
-   [5] Inside Kill Zone: PASS/FAIL
-   [6] Minimum 2R to target: PASS/FAIL
-   [7] Macro supports long: PASS/FAIL
-   SCORE: X/7 → Full Size / Half Size / No Trade
+10.5 A+ SCORE CALCULATION (Weighted 1-10)
+   [+2] HTF + LTF Alignment (all TFs bullish): YES/NO
+   [+2] FVG at HTF POI (entry at 4H/Daily confluence): YES/NO
+   [+2] Clear Liquidity Sweep (SSL raided, SFP confirmed): YES/NO
+   [+1] Price in Discount zone: YES/NO
+   [+1] Inside Kill Zone or Silver Bullet: YES/NO
+   [+1] 3R+ Available to target: YES/NO
+   [-1] Conflicting Structure between entry and target: YES/NO
+   [-1] High-Impact News within 30 min: YES/NO
+   SCORE: X/10 → 8-10 Full Size / 6-7 Half Size / 4-5 Marginal / <4 No Trade
 
 11. COUNTER THE SHORT ANALYST
     - Read the short analyst argument carefully.
