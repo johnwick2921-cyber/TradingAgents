@@ -300,23 +300,46 @@ Open `http://localhost:8000` in your browser.
 
 ### Features
 
-- **Dashboard** — Configure and launch analysis runs, view history, live NQ price ticker
-- **Live Run** — Real-time WebSocket streaming of agent progress, messages, and reports
-- **Run Details** — View all analyst reports, research debates, trader proposal, and final decision
-- **Memories** — Browse and manage BM25 agent memories from past trades
-- **Settings** — Strategy config (JadeCap ICT or Default), LLM providers, API keys, data providers
+- **Dashboard** — Configure and launch analysis runs, view history, live price ticker (any futures/stocks)
+- **Live Run** — Real-time WebSocket streaming of agent progress, messages, and all reports as they complete
+- **Run Details** — View all analyst reports, research debates, trader proposal, and final decision with tabs
+- **Memories** — Browse and manage BM25 agent memories from past trades (auto-saved after each run)
+- **Settings** — Strategy config (JadeCap ICT or Default), LLM providers, API keys, data providers, Kill Zone toggles
 - **Dark/Light Mode** — Toggle or follow system preference
 
 ### JadeCap ICT Strategy
 
 When "JadeCap ICT" strategy is selected, the system uses:
 
-- **7 specialized agents** with ICT methodology prompts (SFP, FVG, Order Blocks, etc.)
-- **23 ICT indicators** via smartmoneyconcepts + stockstats
-- **Databento live price** streaming for NQ/MNQ futures
-- **A+ Scoring** (7 criteria) for setup quality and position sizing
-- **20 hard rules** from Kyle Ng's JadeCap playbook
-- **Kill Zone timing** with Silver Bullet window rules
+- **7 specialized agents** with full ICT methodology prompts based on Kyle Ng's JadeCap playbook
+- **23 ICT indicators** via smartmoneyconcepts + stockstats (FVG, OB, SFP, MSS/CHoCH, session levels, NDOG/NWOG, etc.)
+- **Databento live price** streaming for NQ/MNQ/ES and any futures via WebSocket
+- **Live price in agent prompts** — Market Analyst calls `get_live_price()` before every analysis
+- **A+ Scoring** (7 criteria) for setup quality and position sizing (7/7=full, 5-6=half, <5=skip)
+- **Daily Sweep / SFP** — Swing Failure Pattern detection on 1H as the #1 entry strategy
+- **Silver Bullet** rules — first FVG only, sweep required, cancel at window close
+- **Draw on Liquidity + IPDA** — 5-question framework + 20/40/60-day institutional delivery
+- **20 hard rules** from the JadeCap playbook, injected into every agent prompt
+- **14-item pre-trade checklist** validated before any entry
+- **6 entry models** — SFP (Entry 0), FVG, Order Block, Liquidity Raid, Breaker Block, OTE Fibonacci
+- **Kill Zone timing** with toggleable windows (AM, Silver Bullet AM, PM, Silver Bullet PM)
+- **Holiday rules** — SFP reliability warnings on low-volume days
+- **Midday avoidance** — 11:30 AM - 1:00 PM chop zone blocking
+- **Auto-memory save** — memories generated after every completed run without manual reflect
+- **Data provider routing** — Settings control which provider (Databento/yfinance/Alpha Vantage) is used per category
+- **Futures ticker mapping** — NQ auto-maps to NQ=F for yfinance, NQ.c.0 for Databento
+
+### Supported LLM Providers
+
+| Provider | Quick Model | Deep Model |
+|----------|------------|------------|
+| Anthropic | claude-haiku-4-5 | claude-sonnet-4-6 |
+| OpenAI | gpt-4.1-mini | gpt-4.1 |
+| DeepSeek | deepseek-chat | deepseek-reasoner |
+| Google | gemini-2.5-flash | gemini-2.5-pro |
+| xAI | grok-3-mini | grok-3 |
+| Ollama | any local model | any local model |
+| OpenRouter | any model | any model |
 
 ### API Keys
 
@@ -326,8 +349,12 @@ Set in `.env` or via the Settings page:
 |-----|-------------|
 | `ANTHROPIC_API_KEY` | Claude models (recommended for JadeCap) |
 | `OPENAI_API_KEY` | GPT models |
-| `DATABENTO_API_KEY` | Live NQ price + OHLCV data |
+| `DEEPSEEK_API_KEY` | DeepSeek models |
+| `GOOGLE_API_KEY` | Gemini models |
+| `DATABENTO_API_KEY` | Live futures price + OHLCV data (NQ, ES, etc.) |
 | `ALPHA_VANTAGE_API_KEY` | Alternative data provider |
+| `XAI_API_KEY` | Grok models |
+| `OPENROUTER_API_KEY` | OpenRouter models |
 
 ### Development
 
@@ -338,6 +365,18 @@ WEBUI_RELOAD=true python run_webui.py
 # Frontend dev server (separate terminal)
 cd webui/frontend && npm run dev
 ```
+
+### Dependencies
+
+Python packages (installed via `pip install -e ".[webui]"`):
+- `fastapi`, `uvicorn`, `websockets`, `aiosqlite` — Web UI backend
+- `smartmoneyconcepts` — ICT indicators (FVG, OB, sessions, liquidity, BOS/CHoCH)
+- `databento` — Live futures data and OHLCV
+- `langchain`, `langgraph` — Agent framework
+- `yfinance`, `stockstats` — Stock data and technical indicators
+
+Frontend (installed via `npm install` in `webui/frontend/`):
+- React 19, Vite, Tailwind CSS, React Router, react-markdown
 
 ---
 
