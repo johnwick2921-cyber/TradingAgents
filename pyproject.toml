@@ -35,8 +35,20 @@ dependencies = [
 [project.scripts]
 tradingagents = "cli.main:app"
 
+[project.optional-dependencies]
+webui = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "websockets>=14.0",
+    "aiosqlite>=0.20.0",
+    "python-multipart>=0.0.18",
+    "fpdf2>=2.8.0",
+    "databento>=0.73.0",
+    "smartmoneyconcepts>=0.0.26",
+]
+
 [tool.setuptools.packages.find]
-include = ["tradingagents*", "cli*"]
+include = ["tradingagents*", "cli*", "webui*"]
 
 [tool.setuptools.package-data]
 cli = ["static/*"]

@@ -14,8 +14,14 @@ def get_YFin_data_online(
     datetime.strptime(start_date, "%Y-%m-%d")
     datetime.strptime(end_date, "%Y-%m-%d")
 
+    # Map futures symbols to yfinance format (NQ -> NQ=F, ES -> ES=F, etc.)
+    _sym = symbol.upper().strip()
+    _FUTURES = {"NQ", "ES", "YM", "RTY", "CL", "GC", "SI", "MNQ", "MES", "MYM", "MNQ", "MCL"}
+    if _sym in _FUTURES and "=" not in _sym:
+        _sym = f"{_sym}=F"
+
     # Create ticker object
-    ticker = yf.Ticker(symbol.upper())
+    ticker = yf.Ticker(_sym)
 
     # Fetch historical data for the specified date range
     data = yf_retry(lambda: ticker.history(start=start_date, end=end_date))
@@ -201,7 +207,13 @@ def _get_stock_stats_bulk(
     
     config = get_config()
     online = config["data_vendors"]["technical_indicators"] != "local"
-    
+
+    # Map futures symbols to yfinance format
+    _FUTURES = {"NQ", "ES", "YM", "RTY", "CL", "GC", "SI", "MNQ", "MES", "MYM", "MCL"}
+    _sym = symbol.upper().strip()
+    if _sym in _FUTURES and "=" not in _sym:
+        symbol = f"{_sym}=F"
+
     if not online:
         # Local data path
         try:

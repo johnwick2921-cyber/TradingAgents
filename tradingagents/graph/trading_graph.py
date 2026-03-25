@@ -119,6 +119,7 @@ class TradingAgentsGraph:
             self.invest_judge_memory,
             self.portfolio_manager_memory,
             self.conditional_logic,
+            config=self.config,
         )
 
         self.propagator = Propagator()
@@ -157,15 +158,15 @@ class TradingAgentsGraph:
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""
+        # JadeCap ICT strategy uses ICT tools instead of stock/indicator tools
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.utils.ict_tools import ICT_TOOLS
+            market_tools = ICT_TOOLS
+        else:
+            market_tools = [get_stock_data, get_indicators]
+
         return {
-            "market": ToolNode(
-                [
-                    # Core stock data tools
-                    get_stock_data,
-                    # Technical indicators
-                    get_indicators,
-                ]
-            ),
+            "market": ToolNode(market_tools),
             "social": ToolNode(
                 [
                     # News tools for social media analysis

@@ -50,7 +50,14 @@ class ConditionalLogic:
             state["investment_debate_state"]["count"] >= 2 * self.max_debate_rounds
         ):  # 3 rounds of back-and-forth between 2 agents
             return "Research Manager"
-        if state["investment_debate_state"]["current_response"].startswith("Bull"):
+        current = state["investment_debate_state"].get("current_response", "")
+        # Check for both original ("Bull") and JadeCap ("Bull Analyst") prefixes
+        if current.startswith("Bull") or current.startswith("Long Setup"):
+            return "Bear Researcher"
+        if current.startswith("Bear") or current.startswith("Short Setup"):
+            return "Bull Researcher"
+        # Fallback: if count is even, bull goes next; if odd, bear goes next
+        if state["investment_debate_state"]["count"] % 2 == 0:
             return "Bear Researcher"
         return "Bull Researcher"
 

@@ -25,8 +25,10 @@ class GraphSetup:
         invest_judge_memory,
         portfolio_manager_memory,
         conditional_logic: ConditionalLogic,
+        config: Dict[str, Any] = None,
     ):
         """Initialize with required components."""
+        self.config = config or {}
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
         self.tool_nodes = tool_nodes
@@ -58,9 +60,15 @@ class GraphSetup:
         tool_nodes = {}
 
         if "market" in selected_analysts:
-            analyst_nodes["market"] = create_market_analyst(
-                self.quick_thinking_llm
-            )
+            if self.config.get("strategy") == "jadecap":
+                from tradingagents.agents.analysts.market_analyst_jadecap import create_market_analyst_jadecap
+                analyst_nodes["market"] = create_market_analyst_jadecap(
+                    self.quick_thinking_llm
+                )
+            else:
+                analyst_nodes["market"] = create_market_analyst(
+                    self.quick_thinking_llm
+                )
             delete_nodes["market"] = create_msg_delete()
             tool_nodes["market"] = self.tool_nodes["market"]
 
@@ -72,9 +80,15 @@ class GraphSetup:
             tool_nodes["social"] = self.tool_nodes["social"]
 
         if "news" in selected_analysts:
-            analyst_nodes["news"] = create_news_analyst(
-                self.quick_thinking_llm
-            )
+            if self.config.get("strategy") == "jadecap":
+                from tradingagents.agents.analysts.news_analyst_jadecap import create_news_analyst_jadecap
+                analyst_nodes["news"] = create_news_analyst_jadecap(
+                    self.quick_thinking_llm
+                )
+            else:
+                analyst_nodes["news"] = create_news_analyst(
+                    self.quick_thinking_llm
+                )
             delete_nodes["news"] = create_msg_delete()
             tool_nodes["news"] = self.tool_nodes["news"]
 
@@ -86,24 +100,52 @@ class GraphSetup:
             tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
 
         # Create researcher and manager nodes
-        bull_researcher_node = create_bull_researcher(
-            self.quick_thinking_llm, self.bull_memory
-        )
-        bear_researcher_node = create_bear_researcher(
-            self.quick_thinking_llm, self.bear_memory
-        )
-        research_manager_node = create_research_manager(
-            self.deep_thinking_llm, self.invest_judge_memory
-        )
-        trader_node = create_trader(self.quick_thinking_llm, self.trader_memory)
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.researchers.bull_researcher_jadecap import create_bull_researcher_jadecap
+            bull_researcher_node = create_bull_researcher_jadecap(
+                self.quick_thinking_llm, self.bull_memory
+            )
+        else:
+            bull_researcher_node = create_bull_researcher(
+                self.quick_thinking_llm, self.bull_memory
+            )
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.researchers.bear_researcher_jadecap import create_bear_researcher_jadecap
+            bear_researcher_node = create_bear_researcher_jadecap(
+                self.quick_thinking_llm, self.bear_memory
+            )
+        else:
+            bear_researcher_node = create_bear_researcher(
+                self.quick_thinking_llm, self.bear_memory
+            )
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.managers.research_manager_jadecap import create_research_manager_jadecap
+            research_manager_node = create_research_manager_jadecap(
+                self.deep_thinking_llm, self.invest_judge_memory
+            )
+        else:
+            research_manager_node = create_research_manager(
+                self.deep_thinking_llm, self.invest_judge_memory
+            )
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.trader.trader_jadecap import create_trader_jadecap
+            trader_node = create_trader_jadecap(self.quick_thinking_llm, self.trader_memory)
+        else:
+            trader_node = create_trader(self.quick_thinking_llm, self.trader_memory)
 
         # Create risk analysis nodes
         aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
         neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
         conservative_analyst = create_conservative_debator(self.quick_thinking_llm)
-        portfolio_manager_node = create_portfolio_manager(
-            self.deep_thinking_llm, self.portfolio_manager_memory
-        )
+        if self.config.get("strategy") == "jadecap":
+            from tradingagents.agents.managers.portfolio_manager_jadecap import create_portfolio_manager_jadecap
+            portfolio_manager_node = create_portfolio_manager_jadecap(
+                self.deep_thinking_llm, self.portfolio_manager_memory
+            )
+        else:
+            portfolio_manager_node = create_portfolio_manager(
+                self.deep_thinking_llm, self.portfolio_manager_memory
+            )
 
         # Create workflow
         workflow = StateGraph(AgentState)
@@ -157,6 +199,7 @@ class GraphSetup:
             "Bull Researcher",
             self.conditional_logic.should_continue_debate,
             {
+                "Bull Researcher": "Bull Researcher",
                 "Bear Researcher": "Bear Researcher",
                 "Research Manager": "Research Manager",
             },
@@ -166,6 +209,7 @@ class GraphSetup:
             self.conditional_logic.should_continue_debate,
             {
                 "Bull Researcher": "Bull Researcher",
+                "Bear Researcher": "Bear Researcher",
                 "Research Manager": "Research Manager",
             },
         )

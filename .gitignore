@@ -217,3 +217,13 @@ __marimo__/
 
 # Cache
 **/data_cache/
+
+# Web UI
+webui/frontend/node_modules/
+webui/frontend/dist/
+webui/data/
+*.db
+
+# Serena / Results
+.serena/
+results/

@@ -125,9 +125,11 @@ TradingAgents supports multiple LLM providers. Set the API key for your chosen p
 export OPENAI_API_KEY=...          # OpenAI (GPT)
 export GOOGLE_API_KEY=...          # Google (Gemini)
 export ANTHROPIC_API_KEY=...       # Anthropic (Claude)
+export DEEPSEEK_API_KEY=...        # DeepSeek
 export XAI_API_KEY=...             # xAI (Grok)
 export OPENROUTER_API_KEY=...      # OpenRouter
-export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage
+export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (data)
+export DATABENTO_API_KEY=...       # Databento (NQ/ES futures data)
 ```
 
 For local models, configure Ollama with `llm_provider: "ollama"` in your config.
@@ -159,6 +161,73 @@ An interface will appear showing results as they load, letting you track the age
 <p align="center">
   <img src="assets/cli/cli_transaction.png" width="100%" style="display: inline-block; margin: 0 2%;">
 </p>
+
+### Web UI
+
+TradingAgents also includes a browser-based dashboard as an alternative to the CLI. It provides live streaming progress, run history, memory exploration, and error resilience.
+
+**Prerequisites:** Node.js 18+ and npm
+
+**Install and run:**
+```bash
+# Install backend dependencies
+pip install ".[webui]"
+
+# Build the frontend (one-time)
+cd webui/frontend
+npm install
+npm run build
+cd ../..
+
+# Start the server
+python run_webui.py
+```
+
+Opens `http://localhost:8000` in your browser.
+
+**Features:**
+- Configure and run analysis from the browser (ticker, date, provider, models, research depth, analysts)
+- Live NQ futures price ticker on dashboard (Databento + yfinance fallback, auto-refreshes every 30s)
+- Live WebSocket streaming of agent progress as each step completes
+- View full reports, research debates, risk debates, and final decisions
+- Run history with search, filter, sort, and comparison
+- BM25 memory explorer — view and manage what each agent has learned
+- Settings page for default config, API keys, data providers, and theme (dark/light)
+- Data provider selection: yfinance, Alpha Vantage, or Databento (for NQ/ES futures)
+- Export/import runs and memories as JSON
+- Error resilience — rate limits and API errors are handled gracefully instead of crashing
+
+### Databento Integration (NQ Futures)
+
+For professional futures data (NQ, ES, CL, GC, etc.), set your Databento API key:
+
+```bash
+# Add to .env
+DATABENTO_API_KEY=your-key-here
+```
+
+Then in Settings → Data Providers, select **Databento** for Stock Price Data and Technical Indicators. Databento provides institutional-quality OHLCV data from CME Globex. News and fundamentals fall back to yfinance (futures don't have earnings/balance sheets).
+
+### ICT / Smart Money Concepts
+
+The framework includes the `smartmoneyconcepts` library for ICT-based analysis:
+- Fair Value Gaps (FVG)
+- Order Blocks (OB)
+- Break of Structure / Change of Character (BOS/CHoCH)
+- Liquidity levels (equal highs/lows)
+- Breaker Blocks
+- Swing highs and lows
+
+**For development (hot reload):**
+```bash
+# Terminal 1: Backend with auto-reload
+WEBUI_RELOAD=true python run_webui.py
+
+# Terminal 2: Frontend dev server
+cd webui/frontend && npm run dev
+```
+
+---
 
 ## TradingAgents Package
 
@@ -207,6 +276,72 @@ We welcome contributions from the community! Whether it's fixing a bug, improvin
 ## Citation
 
 Please reference our work if you find *TradingAgents* provides you with some help :)
+
+---
+
+## Web UI
+
+A browser-based dashboard that replaces the CLI with live streaming, run history, and strategy configuration.
+
+### Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -e ".[webui]"
+
+# 2. Build frontend
+cd webui/frontend && npm install && npm run build && cd ../..
+
+# 3. Start server
+python run_webui.py
+```
+
+Open `http://localhost:8000` in your browser.
+
+### Features
+
+- **Dashboard** — Configure and launch analysis runs, view history, live NQ price ticker
+- **Live Run** — Real-time WebSocket streaming of agent progress, messages, and reports
+- **Run Details** — View all analyst reports, research debates, trader proposal, and final decision
+- **Memories** — Browse and manage BM25 agent memories from past trades
+- **Settings** — Strategy config (JadeCap ICT or Default), LLM providers, API keys, data providers
+- **Dark/Light Mode** — Toggle or follow system preference
+
+### JadeCap ICT Strategy
+
+When "JadeCap ICT" strategy is selected, the system uses:
+
+- **7 specialized agents** with ICT methodology prompts (SFP, FVG, Order Blocks, etc.)
+- **23 ICT indicators** via smartmoneyconcepts + stockstats
+- **Databento live price** streaming for NQ/MNQ futures
+- **A+ Scoring** (7 criteria) for setup quality and position sizing
+- **20 hard rules** from Kyle Ng's JadeCap playbook
+- **Kill Zone timing** with Silver Bullet window rules
+
+### API Keys
+
+Set in `.env` or via the Settings page:
+
+| Key | Required For |
+|-----|-------------|
+| `ANTHROPIC_API_KEY` | Claude models (recommended for JadeCap) |
+| `OPENAI_API_KEY` | GPT models |
+| `DATABENTO_API_KEY` | Live NQ price + OHLCV data |
+| `ALPHA_VANTAGE_API_KEY` | Alternative data provider |
+
+### Development
+
+```bash
+# Backend with hot reload
+WEBUI_RELOAD=true python run_webui.py
+
+# Frontend dev server (separate terminal)
+cd webui/frontend && npm run dev
+```
+
+---
+
+## Citation
 
 ```
 @misc{xiao2025tradingagentsmultiagentsllmfinancial,
