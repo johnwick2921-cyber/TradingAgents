@@ -79,7 +79,7 @@ class GraphSetup:
             if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
                 from tradingagents.agents.analysts.market_analyst_jadecap import create_market_analyst_jadecap
                 analyst_nodes["market"] = create_market_analyst_jadecap(
-                    self.quick_thinking_llm
+                    self.quick_thinking_llm, memory=self.invest_judge_memory
                 )
             else:
                 analyst_nodes["market"] = create_market_analyst(
@@ -99,7 +99,7 @@ class GraphSetup:
             if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
                 from tradingagents.agents.analysts.news_analyst_jadecap import create_news_analyst_jadecap
                 analyst_nodes["news"] = create_news_analyst_jadecap(
-                    self.quick_thinking_llm
+                    self.quick_thinking_llm, memory=self.portfolio_manager_memory
                 )
             else:
                 analyst_nodes["news"] = create_news_analyst(

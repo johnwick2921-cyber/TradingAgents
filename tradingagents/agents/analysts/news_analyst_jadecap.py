@@ -27,7 +27,7 @@ from tradingagents.jadecap_config import (
 )
 
 
-def create_news_analyst_jadecap(llm):
+def create_news_analyst_jadecap(llm, memory=None):
 
     def news_analyst_node(state):
         current_date = state["trade_date"]
@@ -36,6 +36,16 @@ def create_news_analyst_jadecap(llm):
         active      = JADECAP_CONFIG["active_instrument"]
         instrument  = INSTRUMENTS[active]
         active_firm = JADECAP_CONFIG["active_firm"]
+
+        # BM25 memory — past news analysis lessons
+        past_memory_str = ""
+        if memory:
+            curr_situation = f"{ticker} {active} {current_date} news macro"
+            past_memories = memory.get_memories(curr_situation, n_matches=2)
+            for rec in past_memories:
+                past_memory_str += rec["recommendation"] + "\n\n"
+        if not past_memory_str:
+            past_memory_str = "No past news analysis memories yet."
 
         kz_str = "\n".join(
             f"  - {v['name']}: {v['start']}-{v['end']} EST"
@@ -153,6 +163,10 @@ STEP 4 — PRE-MARKET CONTEXT
 
 HARD RULES:
 {hard_rules_str}
+
+PAST NEWS ANALYSIS LESSONS — learn from these:
+{past_memory_str}
+Apply these lessons. If past CPI days led to blown stops, flag it harder. If holiday warnings were ignored, emphasize more.
 
 OUTPUT FORMAT:
 

@@ -16,7 +16,7 @@ from tradingagents.jadecap_config import (
 )
 
 
-def create_market_analyst_jadecap(llm):
+def create_market_analyst_jadecap(llm, memory=None):
     """Factory function — returns a LangGraph node for JadeCap ICT analysis."""
 
     def jadecap_analyst_node(state):
@@ -28,6 +28,16 @@ def create_market_analyst_jadecap(llm):
         max_loss = RISK["max_loss_per_trade"]
         daily_target = RISK["daily_profit_target"]
         min_rr = RISK["min_rr"]
+
+        # BM25 memory — past market analysis lessons
+        past_memory_str = ""
+        if memory:
+            curr_situation = f"{ticker} {active} {current_date}"
+            past_memories = memory.get_memories(curr_situation, n_matches=2)
+            for rec in past_memories:
+                past_memory_str += rec["recommendation"] + "\n\n"
+        if not past_memory_str:
+            past_memory_str = "No past market analysis memories yet."
 
         hard_rules_str = "\n".join(
             f"  {i+1}. {r}" for i, r in enumerate(HARD_RULES)
@@ -197,6 +207,10 @@ Target: {BEAR_SETUP['target']}
 
 HARD RULES — NON-NEGOTIABLE:
 {hard_rules_str}
+
+PAST MARKET ANALYSIS LESSONS — learn from these:
+{past_memory_str}
+Apply these lessons to improve your analysis. Avoid past mistakes. Repeat what worked.
 
 OUTPUT FORMAT:
 ## SFP Detection (status, swept level, direction)

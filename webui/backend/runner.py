@@ -776,8 +776,78 @@ class RunnerManager:
             loop.run_until_complete(
                 self._async_save_results(run_id, final_state, decision, duration, stats)
             )
+        except Exception as e:
+            print(f"\n!!! _save_results FAILED: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
         finally:
             loop.close()
+
+        # Auto-save memories in a SEPARATE event loop to avoid conflicts
+        self._auto_save_memories(run_id, final_state, decision)
+
+    def _auto_save_memories(self, run_id: str, final_state: Dict[str, Any], decision: str) -> None:
+        """Save memories from completed run to SQLite using sync sqlite3 (no async issues)."""
+        import sqlite3
+        from datetime import datetime as _dt, timezone as _tz
+        from webui.backend.database import DB_PATH
+
+        try:
+            situation = "\n\n".join(
+                final_state.get(k, "") for k in
+                ["market_report", "news_report", "sentiment_report"]
+                if final_state.get(k)
+            )[:2000]
+
+            if not situation:
+                print(f"!!! Auto-save: empty situation for run {run_id[:12]}", flush=True)
+                return
+
+            agent_reports = {
+                "bull": final_state.get("investment_plan", ""),
+                "bear": final_state.get("investment_plan", ""),
+                "trader": final_state.get("trader_investment_plan", ""),
+                "invest_judge": final_state.get("investment_plan", ""),
+                "portfolio_manager": final_state.get("final_trade_decision", ""),
+            }
+
+            now = _dt.now(_tz.utc).isoformat()
+            db = sqlite3.connect(str(DB_PATH))
+            count = 0
+            try:
+                for agent_name, content in agent_reports.items():
+                    if not content:
+                        continue
+                    recommendation = f"Signal: {decision}. Analysis: {content[:500]}"
+                    db.execute(
+                        "INSERT INTO memories (agent_name, situation, recommendation, run_id, created_at) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        (agent_name, situation, recommendation, run_id, now),
+                    )
+                    count += 1
+                db.commit()
+            finally:
+                db.close()
+
+            print(f"\n>>> AUTO-SAVED {count} memories to SQLite for run {run_id[:12]}...", flush=True)
+
+            # Also load into BM25 so next run's agents can retrieve them
+            try:
+                from webui.backend.memory_bridge import memory_bridge
+                for agent_name, content in agent_reports.items():
+                    if not content:
+                        continue
+                    recommendation = f"Signal: {decision}. Analysis: {content[:500]}"
+                    mem = memory_bridge.get_memory(agent_name)
+                    mem.add_situations([(situation, recommendation)])
+                print(f">>> Loaded {count} memories into BM25 — agents will use them next run", flush=True)
+            except Exception as bm25_err:
+                print(f"!!! BM25 load failed (non-fatal, will reload on restart): {bm25_err}", flush=True)
+
+        except Exception as e:
+            print(f"\n!!! MEMORY AUTO-SAVE FAILED for run {run_id[:12]}: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
 
     async def _async_save_results(
         self,
@@ -888,54 +958,8 @@ class RunnerManager:
 
             await db.commit()
 
-        # Auto-generate memories from this completed run
-        try:
-            from webui.backend.memory_bridge import memory_bridge
-            from datetime import datetime as _dt, timezone as _tz
-            _now = _dt.now(_tz.utc).isoformat()
-
-            logger.info(
-                "Auto-save: final_state keys = %s",
-                [k for k in final_state.keys() if k != "messages"]
-            )
-
-            situation = "\n\n".join(
-                final_state.get(k, "") for k in
-                ["market_report", "news_report", "sentiment_report"]
-                if final_state.get(k)
-            )[:2000]
-
-            logger.info("Auto-save: situation length = %d", len(situation))
-
-            if situation:
-                agent_reports = {
-                    "bull": final_state.get("investment_plan", ""),
-                    "bear": final_state.get("investment_plan", ""),
-                    "trader": final_state.get("trader_investment_plan", ""),
-                    "invest_judge": final_state.get("investment_plan", ""),
-                    "portfolio_manager": final_state.get("final_trade_decision", ""),
-                }
-
-                async with get_db() as db2:
-                    for agent_name, content in agent_reports.items():
-                        if not content:
-                            continue
-                        recommendation = f"Signal: {decision}. Analysis: {content[:500]}"
-                        await db2.execute(
-                            "INSERT INTO memories (agent_name, situation, recommendation, run_id, created_at) "
-                            "VALUES (?, ?, ?, ?, ?)",
-                            (agent_name, situation, recommendation, run_id, _now),
-                        )
-                    await db2.commit()
-
-                logger.info("Auto-saved memories for run %s", run_id)
-                # Reload BM25 — may fail in background thread, non-fatal
-                try:
-                    await memory_bridge.load_from_db()
-                except Exception:
-                    pass  # Will reload on next server restart or next run
-        except Exception:
-            logger.exception("Failed to auto-save memories for run %s", run_id)
+        # NOTE: Memory auto-save is handled by _auto_save_memories() in a separate event loop
+        # (called from _save_results after this function completes)
 
     def _save_failure(
         self,
