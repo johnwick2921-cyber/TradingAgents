@@ -43,7 +43,7 @@ def create_portfolio_manager_jadecap(llm, memory):
 
         past_memory_str = ""
         if past_memories:
-            for i, rec in enumerate(past_memories, 1):
+            for rec in past_memories:
                 past_memory_str += rec["recommendation"] + "\n\n"
         else:
             past_memory_str = "No past memories found."
@@ -54,6 +54,8 @@ def create_portfolio_manager_jadecap(llm, memory):
         point_value = instrument["point_value"]
         max_loss = RISK["max_loss_per_trade"]
         min_rr = RISK["min_rr"]
+        half_risk_losses = RISK["half_risk_after_consecutive_losses"]
+        max_streak = RISK["max_losing_streak_before_stop"]
 
         # hard rules
         hard_rules_str = "\n".join(
@@ -175,8 +177,8 @@ ADX adjustment:
   - ADX 20-25 -> 50% contracts.
   - ADX < 20 -> HOLD (no trade).
 Consecutive loss adjustment:
-  - If 2 consecutive losses → cut contracts in half (round down, min 1).
-  - If 3 consecutive losses → STOP — override to HOLD regardless of setup.
+  - If {half_risk_losses} consecutive losses → cut contracts in half (round down, min 1).
+  - If {max_streak} consecutive losses → STOP — override to HOLD regardless of setup.
   - Return to full risk only when account returns to starting equity.
 
 Final contracts: [X] (round DOWN, minimum 1)

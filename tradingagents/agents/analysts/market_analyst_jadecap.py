@@ -170,10 +170,11 @@ ALL items must PASS:
 {checklist_str}
 Any FAIL = NO TRADE with specific reason.
 
-A+ SETUP SCORING — rate this setup 1-10 (weighted):
+A+ SETUP SCORING — rate this setup 1-10 (weighted, max 10):
 [+2] HTF + LTF Alignment (Weekly/Daily AND 1H/15m all agree): YES/NO
 [+2] FVG at HTF POI (entry coincides with 4H/Daily point of interest): YES/NO
-[+2] Clear Liquidity Sweep (SFP confirmed, prior H/L raided): YES/NO
+[+2] Clear Liquidity Sweep (prior H/L raided BEFORE entry): YES/NO
+[+1] SFP Confirmed on 1H (swing point breached, candle closed back inside): YES/NO
 [+1] Price in Correct Zone (discount for longs, premium for shorts): YES/NO
 [+1] Inside Kill Zone or Silver Bullet window: YES/NO
 [+1] 3R+ Available to structural target: YES/NO

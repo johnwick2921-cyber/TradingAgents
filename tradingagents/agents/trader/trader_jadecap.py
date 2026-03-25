@@ -38,7 +38,7 @@ def create_trader_jadecap(llm, memory):
 
         past_memory_str = ""
         if past_memories:
-            for i, rec in enumerate(past_memories, 1):
+            for rec in past_memories:
                 past_memory_str += rec["recommendation"] + "\n\n"
         else:
             past_memory_str = "No past memories found."
@@ -51,6 +51,8 @@ def create_trader_jadecap(llm, memory):
         min_rr = RISK["min_rr"]
         atr_mult = RISK["atr_stop_multiplier"]
         t1_pct = RISK["target_1_pct"]
+        half_risk_losses = RISK["half_risk_after_consecutive_losses"]
+        max_streak = RISK["max_losing_streak_before_stop"]
 
         # hard rules
         hard_rules_str = "\n".join(
@@ -198,11 +200,11 @@ STEP 8: FINAL NEWS RISK CHECK
 STEP 8b: CONSECUTIVE LOSS CHECK
 ══════════════════════════════════════════════════════════════════
 
-After 2 consecutive losses, CUT RISK IN HALF until account returns to starting equity.
-- Check if the previous 2 trades were losses.
+After {half_risk_losses} consecutive losses, CUT RISK IN HALF until account returns to starting equity.
+- Check if the previous {half_risk_losses} trades were losses.
 - If YES → reduce calculated contracts by 50% (round down, minimum 1).
 - This "buys more chips to stay in the game" during drawdowns — JadeCap Rule.
-- After 3 consecutive losses → STOP TRADING for the day, reassess tomorrow.
+- After {max_streak} consecutive losses → STOP TRADING for the day, reassess tomorrow.
 - Return to full risk only when account is back to starting equity.
 
 ══════════════════════════════════════════════════════════════════

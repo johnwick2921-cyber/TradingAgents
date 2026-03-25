@@ -245,10 +245,11 @@ YOUR ARGUMENT MUST COVER ALL OF THESE:
    - Hard close by 4:00 PM EST: CONFIRM
    - If ANY FAIL -> output NO LONG SETUP
 
-10.5 A+ SCORE CALCULATION (Weighted 1-10)
+10.5 A+ SCORE CALCULATION (Weighted 1-10, max 10)
    [+2] HTF + LTF Alignment (all TFs bullish): YES/NO
    [+2] FVG at HTF POI (entry at 4H/Daily confluence): YES/NO
-   [+2] Clear Liquidity Sweep (SSL raided, SFP confirmed): YES/NO
+   [+2] Clear Liquidity Sweep (SSL raided before entry): YES/NO
+   [+1] SFP Confirmed on 1H (swing low swept, candle closed back inside): YES/NO
    [+1] Price in Discount zone: YES/NO
    [+1] Inside Kill Zone or Silver Bullet: YES/NO
    [+1] 3R+ Available to target: YES/NO

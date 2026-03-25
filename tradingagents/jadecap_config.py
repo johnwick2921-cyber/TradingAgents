@@ -1227,7 +1227,7 @@ RISK = {
 # and risk factors deduct -1. This weighted approach ensures HTF
 # alignment and institutional footprint are valued more than timing.
 #
-# Max possible: 9 (all positives, no deductions)
+# Max possible: 10 (all positives, no deductions: 2+2+2+1+1+1+1 = 10)
 # Thresholds:
 #   8-10 = A+ Setup  -> 0.50% risk (scale up, full commitment)
 #   6-7  = Standard  -> 0.25% risk (normal size)
@@ -1239,67 +1239,85 @@ A_PLUS_SCORING = {
     "description": "Weighted 1-10 scoring system — matches JadeCap playbook Section 11",
     "criteria": [
         {
-            "id":     "htf_ltf_align",
-            "name":   "HTF + LTF Alignment",
-            "weight": +2,
-            "detail": "Weekly/Daily and 1H/15m all point same direction",
+            "id":      "htf_ltf_align",
+            "name":    "HTF + LTF Alignment",
+            "weight":  +2,
+            "enabled": True,
+            "detail":  "Weekly/Daily and 1H/15m all point same direction",
         },
         {
-            "id":     "fvg_at_htf_poi",
-            "name":   "FVG at HTF POI",
-            "weight": +2,
+            "id":      "fvg_at_htf_poi",
+            "name":    "FVG at HTF POI",
+            "weight":  +2,
+            "enabled": True,
             "detail": (
                 "FVG entry coincides with 4H or Daily point of interest — "
                 "institutional footprint on multiple TFs"
             ),
         },
         {
-            "id":     "liq_swept",
-            "name":   "Clear Liquidity Sweep First",
-            "weight": +2,
+            "id":      "liq_swept",
+            "name":    "Clear Liquidity Sweep First",
+            "weight":  +2,
+            "enabled": True,
             "detail": (
                 "Prior session H/L or equal H/L raided BEFORE entry — "
                 "AMD manipulation phase confirmed"
             ),
         },
         {
-            "id":     "correct_zone",
-            "name":   "Discount / Premium Zone",
-            "weight": +1,
-            "detail": "Price clearly in discount (longs) or premium (shorts)",
+            "id":      "correct_zone",
+            "name":    "Discount / Premium Zone",
+            "weight":  +1,
+            "enabled": True,
+            "detail":  "Price clearly in discount (longs) or premium (shorts)",
         },
         {
-            "id":     "kill_zone",
-            "name":   "Inside Kill Zone Window",
-            "weight": +1,
-            "detail": "Entry forms during AM KZ or Silver Bullet window",
+            "id":      "kill_zone",
+            "name":    "Inside Kill Zone Window",
+            "weight":  +1,
+            "enabled": True,
+            "detail":  "Entry forms during AM KZ or Silver Bullet window",
         },
         {
-            "id":     "three_r_plus",
-            "name":   "3R+ Available",
-            "weight": +1,
-            "detail": "Setup offers 3:1 or better R:R to structural target",
+            "id":      "sfp_confirmed",
+            "name":    "SFP Confirmed on 1H",
+            "weight":  +1,
+            "enabled": True,
+            "detail": (
+                "1H Swing Failure Pattern confirmed — swing point breached "
+                "and candle closed back inside the range"
+            ),
         },
         {
-            "id":     "conflicting_struct",
-            "name":   "No Conflicting Structure",
-            "weight": -1,
+            "id":      "three_r_plus",
+            "name":    "3R+ Available",
+            "weight":  +1,
+            "enabled": True,
+            "detail":  "Setup offers 3:1 or better R:R to structural target",
+        },
+        {
+            "id":      "conflicting_struct",
+            "name":    "No Conflicting Structure",
+            "weight":  -1,
+            "enabled": True,
             "detail": (
                 "DEDUCT if unfilled FVGs or unswept liquidity pools "
                 "between entry and target could interrupt the move"
             ),
         },
         {
-            "id":     "news_risk",
-            "name":   "High-Impact News Within 30 Min",
-            "weight": -1,
+            "id":      "news_risk",
+            "name":    "High-Impact News Within 30 Min",
+            "weight":  -1,
+            "enabled": True,
             "detail": (
                 "DEDUCT if FOMC, NFP, or CPI releasing during trade window — "
                 "reduce size or stand aside"
             ),
         },
     ],
-    "max_score": 9,
+    "max_score": 10,
     "sizing": {
         "a_plus": {
             "range": "8-10",
@@ -1385,7 +1403,7 @@ HARD_RULES = [
     "No single day loss can exceed $500 — protect the prop account.",
     "Only trade during Distribution phase (NY session). Not Accumulation or Manipulation.",
 
-    # New in v2 — 6 additional rules (total 20)
+    # New in v2 — 7 additional rules (total 21)
     "1H SFP must confirm before ANY lower timeframe entry — no anticipation.",
     "Only the FIRST FVG forming in a Silver Bullet window is valid — skip subsequent ones.",
     "Unfilled Silver Bullet limit orders CANCELED when window closes — never leave orders open.",
