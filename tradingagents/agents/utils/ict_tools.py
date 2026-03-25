@@ -394,7 +394,7 @@ def fetch_live_price(symbol: str) -> str:
 
     clean = symbol.upper().replace("=F", "").strip()
 
-    # Method 1: WebUI live price endpoint
+    # Method 1: WebUI live price endpoint (uses whatever data provider is in Settings)
     try:
         resp = requests.get(f"http://127.0.0.1:8000/api/prices/{clean}", timeout=3)
         if resp.status_code == 200:
@@ -417,7 +417,7 @@ def fetch_live_price(symbol: str) -> str:
             client = dbn.Historical(key=api_key)
             end = datetime.now(timezone.utc) - timedelta(minutes=15)
             start = end - timedelta(minutes=10)
-            db_sym = "MNQ.c.0" if clean == "MNQ" else "NQ.c.0"
+            db_sym = f"{clean}.c.0"
             records = list(client.timeseries.get_range(
                 dataset="GLBX.MDP3", schema="ohlcv-1m",
                 symbols=[db_sym], stype_in="continuous",
@@ -433,7 +433,7 @@ def fetch_live_price(symbol: str) -> str:
     # Method 3: yfinance fallback
     try:
         import yfinance as yf
-        ticker_str = f"{clean}=F" if clean in ("NQ", "MNQ", "ES", "YM", "RTY") else clean
+        ticker_str = f"{clean}=F" if clean in ("NQ", "MNQ", "ES", "MES", "YM", "MYM", "RTY", "M2K") else clean
         hist = yf.Ticker(ticker_str).history(period="1d", interval="1m")
         if not hist.empty:
             return f"CURRENT PRICE: {clean} = {float(hist.iloc[-1]['Close']):.2f} (yfinance, delayed)"
@@ -489,7 +489,7 @@ def get_live_price(
                 client = dbn.Historical(key=api_key)
                 end = datetime.now(timezone.utc) - timedelta(minutes=15)
                 start = end - timedelta(minutes=10)
-                db_sym = "MNQ.c.0" if clean == "MNQ" else "NQ.c.0"
+                db_sym = f"{clean}.c.0"
                 data = client.timeseries.get_range(
                     dataset="GLBX.MDP3",
                     schema="ohlcv-1m",
@@ -514,7 +514,7 @@ def get_live_price(
         # Method 3: yfinance fallback
         try:
             import yfinance as yf
-            ticker = f"{clean}=F" if clean in ("NQ", "MNQ", "ES", "YM", "RTY") else clean
+            ticker = f"{clean}=F" if clean in ("NQ", "MNQ", "ES", "MES", "YM", "MYM", "RTY", "M2K") else clean
             t = yf.Ticker(ticker)
             hist = t.history(period="1d", interval="1m")
             if not hist.empty:
