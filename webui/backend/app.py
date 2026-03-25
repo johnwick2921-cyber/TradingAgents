@@ -16,29 +16,12 @@ from webui.backend.ws import router as ws_router
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 _FRONTEND_DIST = os.path.join(_PROJECT_ROOT, "webui", "frontend", "dist")
 
-app = FastAPI(title="TradingAgents API")
-
-# CORS — allow the Vite dev server in development
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include API routers — WebSocket MUST come before the SPA catch-all
-app.include_router(ws_router)
-app.include_router(prices_ws_router)  # WebSocket for live price streaming
-app.include_router(runs_router)
-app.include_router(config_router)
-app.include_router(memories_router)
-app.include_router(cache_router)
-app.include_router(prices_router)
+from contextlib import asynccontextmanager
 
 
-@app.on_event("startup")
-async def startup() -> None:
+@asynccontextmanager
+async def lifespan(app):
+    # Startup
     await init_db()
     # Clean up any runs stuck in "running" from a previous crash
     from webui.backend.database import get_db
@@ -52,13 +35,35 @@ async def startup() -> None:
     from webui.backend.memory_bridge import memory_bridge
     await memory_bridge.load_from_db()
     # Start Databento live price stream on server startup (not just on WS connect)
-    import os
     if os.environ.get("DATABENTO_API_KEY"):
         try:
             from webui.backend.routes.prices import _start_live_stream
             _start_live_stream()
         except Exception:
             pass  # Non-fatal — falls back to Historical
+    yield
+    # Shutdown (if needed)
+
+
+app = FastAPI(title="TradingAgents API", lifespan=lifespan)
+
+# CORS — allow the Vite dev server and local API in development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:8000", "http://127.0.0.1:8000", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API routers — WebSocket MUST come before the SPA catch-all
+app.include_router(ws_router)
+app.include_router(prices_ws_router)  # WebSocket for live price streaming
+app.include_router(runs_router)
+app.include_router(config_router)
+app.include_router(memories_router)
+app.include_router(cache_router)
+app.include_router(prices_router)
 
 
 @app.get("/api/health")

@@ -51,6 +51,8 @@ def create_news_analyst_jadecap(llm):
             f"  - {h}" for h in HOLIDAY_RULES.get("holidays", [])
         )
 
+        # NOTE: Tool prompt uses keyword-arg syntax (e.g. get_news(ticker="...", ...)).
+        # LangChain @tool decorated functions accept both positional and keyword args, so this is fine.
         tools = [get_news, get_global_news]
 
         system_message = f"""You are a JadeCap Macro News Analyst for {active} Futures ({instrument['description']}).

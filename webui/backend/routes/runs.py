@@ -131,48 +131,33 @@ async def create_run(body: RunCreate) -> JSONResponse:
         )
         await db.commit()
 
-    # Read saved strategy config from settings table
+    # Read saved strategy config, strategy name, and data_vendors from settings
     strategy_config = {}
-    async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT value FROM settings WHERE key = 'strategy_config'"
-        )
-        row = await cursor.fetchone()
-        if row:
-            try:
-                strategy_config = json.loads(row[0])
-            except (ValueError, TypeError):
-                strategy_config = {}
-
-    # Read strategy name from settings
     strategy_name = "default"
-    async with get_db() as db:
-        cursor = await db.execute(
-            "SELECT value FROM settings WHERE key = 'strategy'"
-        )
-        row = await cursor.fetchone()
-        if row:
-            try:
-                strategy_name = json.loads(row[0])
-            except (ValueError, TypeError):
-                pass
-
-    # Read data_vendors from settings (saved in Data Providers section)
     saved_data_vendors = {}
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT value FROM settings WHERE key = 'data_vendors'"
+            "SELECT key, value FROM settings WHERE key IN ('strategy_config', 'strategy', 'data_vendors')"
         )
-        row = await cursor.fetchone()
-        if row:
+        rows = await cursor.fetchall()
+        for row in rows:
+            key, value = row["key"], row["value"]
             try:
-                val = json.loads(row[0])
-                # Handle double-encoded JSON
-                if isinstance(val, str):
-                    val = json.loads(val)
-                saved_data_vendors = val
+                parsed = json.loads(value)
             except (ValueError, TypeError):
-                pass
+                continue
+            if key == "strategy_config":
+                strategy_config = parsed if isinstance(parsed, dict) else {}
+            elif key == "strategy":
+                strategy_name = parsed if isinstance(parsed, str) else "default"
+            elif key == "data_vendors":
+                # Handle double-encoded JSON
+                if isinstance(parsed, str):
+                    try:
+                        parsed = json.loads(parsed)
+                    except (ValueError, TypeError):
+                        pass
+                saved_data_vendors = parsed if isinstance(parsed, dict) else {}
 
     # Build the config dict expected by the runner
     # Priority: request body > saved settings > defaults
@@ -245,6 +230,7 @@ async def list_runs(
     allowed_sort = {"created_at", "ticker", "status", "signal", "trade_date"}
     if sort_by not in allowed_sort:
         sort_by = "created_at"
+    # SECURITY: sort_by is whitelisted above. order_dir is restricted to ASC/DESC. Safe for f-string.
     order_dir = "DESC" if order.lower() == "desc" else "ASC"
 
     offset = (page - 1) * per_page

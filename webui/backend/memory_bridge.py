@@ -275,14 +275,16 @@ class MemoryBridge:
         if agent_name not in AGENT_MEMORY_NAMES:
             raise KeyError(f"Unknown agent '{agent_name}'")
 
-        search_pattern = f"%{query}%"
+        # Escape SQL LIKE wildcards
+        escaped = query.replace("%", "\\%").replace("_", "\\_")
+        search_pattern = f"%{escaped}%"
         async with get_db() as db:
             cursor = await db.execute(
                 """
                 SELECT id, agent_name, situation, recommendation, run_id, created_at
                 FROM memories
                 WHERE agent_name = ?
-                  AND (situation LIKE ? OR recommendation LIKE ?)
+                  AND (situation LIKE ? ESCAPE '\\' OR recommendation LIKE ? ESCAPE '\\')
                 ORDER BY created_at DESC
                 """,
                 (agent_name, search_pattern, search_pattern),

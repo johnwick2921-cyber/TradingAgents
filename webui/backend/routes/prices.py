@@ -321,7 +321,7 @@ def _get_price_alpha_vantage(symbol: str) -> dict:
         "change_pct": round(change_pct, 2),
         "prev_close": prev_close,
         "source": "alpha_vantage",
-        "updated": datetime.now().isoformat(),
+        "updated": datetime.now(timezone.utc).isoformat() + "Z",
     }
 
 
@@ -357,7 +357,7 @@ def _get_price_yfinance(symbol: str) -> dict:
         "change_pct": round(change_pct, 2),
         "prev_close": prev_close,
         "source": "yfinance",
-        "updated": datetime.now().isoformat(),
+        "updated": datetime.now(timezone.utc).isoformat() + "Z",
     }
 
 
@@ -394,7 +394,7 @@ async def get_price(symbol: str) -> dict:
         "symbol": symbol.upper(),
         "price": None,
         "error": f"No price source available for {symbol}. Set DATABENTO_API_KEY for live data.",
-        "updated": datetime.now().isoformat(),
+        "updated": datetime.now(timezone.utc).isoformat() + "Z",
     }
 
 
@@ -422,7 +422,7 @@ async def get_analysis_price(symbol: str) -> dict:
         "symbol": symbol.upper(),
         "price": None,
         "error": f"All providers failed for {symbol}",
-        "updated": datetime.now().isoformat(),
+        "updated": datetime.now(timezone.utc).isoformat() + "Z",
     }
 
 
@@ -435,11 +435,16 @@ def _broadcast_price(tick: dict):
     if not clients or not _event_loop:
         return
     msg = json.dumps(tick)
+    dead = []
     for ws in clients:
         try:
             asyncio.run_coroutine_threadsafe(ws.send_text(msg), _event_loop)
         except Exception:
-            pass
+            dead.append(ws)
+    if dead:
+        with _price_ws_lock:
+            for ws in dead:
+                _price_ws_clients.discard(ws)
 
 
 # ── WebSocket endpoint for live price streaming ───────────────────

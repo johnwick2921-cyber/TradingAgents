@@ -284,7 +284,8 @@ End with a VERDICT: LONG VALID / NO LONG SETUP
 If NO LONG SETUP — state exactly which requirement failed
 and what needs to happen before a long is valid."""
 
-        response = llm.invoke(prompt)
+        from langchain_core.messages import HumanMessage
+        response = llm.invoke([HumanMessage(content=prompt)])
         argument = f"Bull Analyst: {response.content}"
 
         new_investment_debate_state = {

@@ -284,7 +284,8 @@ End with a VERDICT: SHORT VALID / NO SHORT SETUP
 If NO SHORT SETUP — state exactly which requirement failed
 and what needs to happen before a short is valid."""
 
-        response = llm.invoke(prompt)
+        from langchain_core.messages import HumanMessage
+        response = llm.invoke([HumanMessage(content=prompt)])
         argument = f"Bear Analyst: {response.content}"
 
         new_investment_debate_state = {

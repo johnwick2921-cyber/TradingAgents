@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import threading
 import time
 import uuid
@@ -68,6 +69,13 @@ def _register_deepseek_provider():
 # ---------------------------------------------------------------------------
 # Constants for chunk parsing (mirrored from cli/main.py)
 # ---------------------------------------------------------------------------
+
+# Map common futures symbols to yfinance format (module-level constant)
+_FUTURES_MAP: Dict[str, str] = {
+    "NQ": "NQ=F", "MNQ": "MNQ=F", "ES": "ES=F", "MES": "MES=F",
+    "YM": "YM=F", "MYM": "MYM=F", "RTY": "RTY=F", "M2K": "M2K=F",
+    "CL": "CL=F", "GC": "GC=F", "SI": "SI=F", "ZB": "ZB=F",
+}
 
 ANALYST_ORDER = ["market", "social", "news", "fundamentals"]
 
@@ -279,12 +287,6 @@ class RunnerManager:
 
         # Store run params
         self._config_dict = config_dict
-        # Map common futures symbols to yfinance format
-        _FUTURES_MAP = {
-            "NQ": "NQ=F", "MNQ": "MNQ=F", "ES": "ES=F", "MES": "MES=F",
-            "YM": "YM=F", "MYM": "MYM=F", "RTY": "RTY=F", "M2K": "M2K=F",
-            "CL": "CL=F", "GC": "GC=F", "SI": "SI=F", "ZB": "ZB=F",
-        }
         raw_ticker = config_dict["ticker"].upper().strip()
         self._ticker = _FUTURES_MAP.get(raw_ticker, config_dict["ticker"])
         self._trade_date = config_dict["trade_date"]
@@ -350,7 +352,6 @@ class RunnerManager:
         if provider == "deepseek":
             _register_deepseek_provider()
             # Ensure the env var is loaded from .env
-            import os
             from dotenv import load_dotenv
             load_dotenv(os.path.join(
                 os.path.dirname(__file__), "..", "..", ".env"
@@ -384,6 +385,10 @@ class RunnerManager:
         strategy = self._config_dict.get("strategy", "default")
         if strategy and strategy != "default":
             cfg["strategy"] = strategy
+
+        # For JadeCap futures strategy, only market + news are useful
+        if cfg.get("strategy") in ("jadecap", "jadecap_ict"):
+            self._selected_analysts = [a for a in self._selected_analysts if a in ("market", "news")]
 
         # Map effort to provider-specific key
         effort = self._config_dict.get("effort")

@@ -209,6 +209,7 @@ export default function Memories() {
               onChange={(e) => {
                 setAgent(e.target.value);
                 setSearch('');
+                setConfirmClear(false);
               }}
               className="px-3 py-2 rounded-lg text-sm border outline-none transition-colors focus:ring-2"
               style={{

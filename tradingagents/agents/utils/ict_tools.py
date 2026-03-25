@@ -55,6 +55,7 @@ def _get_ohlcv_df(symbol: str, timeframe: str, trade_date: str):
         lookback_bars = 100
 
     end_dt = datetime.strptime(trade_date, "%Y-%m-%d")
+    # Timeframe-to-lookback-days mapping (mirrors TIMEFRAMES config in jadecap_config)
     if timeframe == "1m":
         start_dt = end_dt - timedelta(days=2)
     elif timeframe in ("5m", "15m"):

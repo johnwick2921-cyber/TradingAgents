@@ -84,7 +84,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Live NQ price */}
-      <PriceTicker symbol="NQ" refreshInterval={5000} />
+      <PriceTicker symbol="NQ" />
 
       {/* Error banner */}
       {error && (

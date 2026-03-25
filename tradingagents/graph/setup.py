@@ -134,6 +134,10 @@ class GraphSetup:
             trader_node = create_trader(self.quick_thinking_llm, self.trader_memory)
 
         # Create risk analysis nodes
+        # TODO: Risk debaters (aggressive, conservative, neutral) use generic stock
+        # prompts even for JadeCap strategy. They still function but use stock-market
+        # language instead of ICT terminology. Create JadeCap-specific risk debaters
+        # for full ICT alignment.
         aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
         neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
         conservative_analyst = create_conservative_debator(self.quick_thinking_llm)
