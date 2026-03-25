@@ -10,6 +10,7 @@ a final TRADE PLAN or HOLD decision.
 import functools
 
 from tradingagents.agents.utils.agent_utils import build_instrument_context
+from tradingagents.agents.utils.ict_tools import fetch_live_price
 from tradingagents.jadecap_config import (
     JADECAP_CONFIG,
     HARD_RULES,
@@ -72,10 +73,16 @@ def create_trader_jadecap(llm, memory):
             if v.get("active")
         )
 
+        # Fetch CURRENT live price — critical for final execution decision
+        live_price_str = fetch_live_price(company_name)
+
         context = {
             "role": "user",
             "content": f"""Based on a comprehensive analysis by a team of ICT analysts, here is the
 proposed investment plan for {company_name}. {instrument_context}
+
+LIVE PRICE (fetched right now): {live_price_str}
+CRITICAL: Verify entry is still valid at this price. If price has moved past entry zone, HOLD.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
 Proposed Investment Plan from Research Manager:

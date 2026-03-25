@@ -4,6 +4,8 @@ Replaces generic stock-market language with ICT futures terminology.
 Balances risk and reward — recommends sizing adjustments based on evidence.
 """
 
+from tradingagents.agents.utils.ict_tools import fetch_live_price
+
 
 def create_neutral_debator_jadecap(llm):
     def neutral_node(state) -> dict:
@@ -24,7 +26,13 @@ def create_neutral_debator_jadecap(llm):
         fundamentals_report = state["fundamentals_report"]
         trader_decision = state["trader_investment_plan"]
 
+        # Fetch CURRENT live price
+        ticker = state.get("company_of_interest", "NQ=F")
+        live_price_str = fetch_live_price(ticker)
+
         prompt = f"""You are the JadeCap Neutral Risk Analyst for NQ/ES Futures using ICT methodology.
+
+LIVE PRICE (fetched right now): {live_price_str}
 
 Your role: BALANCE both sides objectively. You don't default to "trade" or "no trade."
 You assess the QUALITY of the setup and recommend appropriate SIZING.

@@ -8,6 +8,7 @@ items one final time, and output the authoritative trade decision.
 """
 
 from tradingagents.agents.utils.agent_utils import build_instrument_context
+from tradingagents.agents.utils.ict_tools import fetch_live_price
 from tradingagents.jadecap_config import (
     JADECAP_CONFIG,
     HARD_RULES,
@@ -83,8 +84,14 @@ def create_portfolio_manager_jadecap(llm, memory):
             f"  {i+1}. {r}" for i, r in enumerate(BEAR_SETUP["requirements"])
         )
 
+        # Fetch CURRENT live price — final decision must use real-time data
+        live_price_str = fetch_live_price(state["company_of_interest"])
+
         prompt = f"""You are the JadeCap Portfolio Manager — the FINAL decision authority for {active} Futures.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
+
+LIVE PRICE (fetched right now): {live_price_str}
+CRITICAL: If price has moved significantly since the trader's analysis, reassess entry validity.
 
 {instrument_context}
 

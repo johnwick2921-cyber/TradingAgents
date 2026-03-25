@@ -8,6 +8,7 @@ Output: Evidence-based short case with specific ICT price levels.
 """
 
 
+from tradingagents.agents.utils.ict_tools import fetch_live_price
 from tradingagents.jadecap_config import (
     JADECAP_CONFIG,
     HARD_RULES,
@@ -45,6 +46,10 @@ def create_bear_researcher_jadecap(llm, memory):
         max_loss   = RISK["max_loss_per_trade"]
         min_rr     = RISK["min_rr"]
 
+        # Fetch CURRENT live price for real-time context
+        ticker = state.get("company_of_interest", f"{active}=F")
+        live_price_str = fetch_live_price(ticker)
+
         # BM25 memory — past short trade lessons
         curr_situation = f"{market_report}\n\n{news_report}\n\n{sentiment_report}"
         past_memories  = memory.get_memories(curr_situation, n_matches=2)
@@ -74,6 +79,9 @@ def create_bear_researcher_jadecap(llm, memory):
 
         prompt = f"""You are the JadeCap Short Setup Analyst for {active} Futures.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
+
+LIVE PRICE (fetched right now): {live_price_str}
+Use this price — NOT the price from the market report — for all zone/R:R calculations.
 
 Your ONLY job: Build the strongest possible case for a SHORT trade right now
 using ICT evidence from the analyst reports. Be specific — use exact prices.

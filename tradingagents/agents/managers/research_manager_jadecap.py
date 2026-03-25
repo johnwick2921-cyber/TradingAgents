@@ -8,6 +8,7 @@ or NO TRADE decision.
 """
 
 from tradingagents.agents.utils.agent_utils import build_instrument_context
+from tradingagents.agents.utils.ict_tools import fetch_live_price
 from tradingagents.jadecap_config import (
     JADECAP_CONFIG,
     HARD_RULES,
@@ -76,6 +77,10 @@ def create_research_manager_jadecap(llm, memory):
             if v.get("active")
         )
 
+        # Fetch CURRENT live price for real-time context
+        ticker = state.get("company_of_interest", f"{active}=F")
+        live_price_str = fetch_live_price(ticker)
+
         # instrument context
         instrument_context = build_instrument_context(
             state.get("company_of_interest", f"{active}=F")
@@ -85,6 +90,9 @@ def create_research_manager_jadecap(llm, memory):
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
 {instrument_context}
+
+LIVE PRICE (fetched right now): {live_price_str}
+Use this price for all premium/discount zone checks and R:R calculations.
 
 Your job: Read both the Long Setup Analyst and Short Setup Analyst arguments,
 determine which side has STRONGER ICT evidence, verify every requirement, and

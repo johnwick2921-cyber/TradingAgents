@@ -4,6 +4,8 @@ Replaces generic stock-market language with ICT futures terminology.
 Argues for CAUTION — protects the prop firm account from marginal setups.
 """
 
+from tradingagents.agents.utils.ict_tools import fetch_live_price
+
 
 def create_conservative_debator_jadecap(llm):
     def conservative_node(state) -> dict:
@@ -24,7 +26,13 @@ def create_conservative_debator_jadecap(llm):
         fundamentals_report = state["fundamentals_report"]
         trader_decision = state["trader_investment_plan"]
 
+        # Fetch CURRENT live price
+        ticker = state.get("company_of_interest", "NQ=F")
+        live_price_str = fetch_live_price(ticker)
+
         prompt = f"""You are the JadeCap Conservative Risk Analyst for NQ/ES Futures using ICT methodology.
+
+LIVE PRICE (fetched right now): {live_price_str}
 
 Your role: PROTECT the prop firm account. Challenge marginal setups ruthlessly.
 You are the last line of defense against overtrading and blown accounts.
