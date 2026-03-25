@@ -90,8 +90,9 @@ def create_portfolio_manager_jadecap(llm, memory):
         prompt = f"""You are the JadeCap Portfolio Manager — the FINAL decision authority for {active} Futures.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
-LIVE PRICE (fetched right now): {live_price_str}
-CRITICAL: If price has moved significantly since the trader's analysis, reassess entry validity.
+>>> CURRENT PRICE: {live_price_str} <<<
+YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
+If price has moved significantly since the trader's analysis, reassess entry validity.
 
 {instrument_context}
 

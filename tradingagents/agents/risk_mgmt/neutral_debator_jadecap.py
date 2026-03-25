@@ -32,7 +32,8 @@ def create_neutral_debator_jadecap(llm):
 
         prompt = f"""You are the JadeCap Neutral Risk Analyst for NQ/ES Futures using ICT methodology.
 
-LIVE PRICE (fetched right now): {live_price_str}
+>>> CURRENT PRICE: {live_price_str} <<<
+STATE THIS PRICE IN YOUR FIRST LINE.
 
 Your role: BALANCE both sides objectively. You don't default to "trade" or "no trade."
 You assess the QUALITY of the setup and recommend appropriate SIZING.

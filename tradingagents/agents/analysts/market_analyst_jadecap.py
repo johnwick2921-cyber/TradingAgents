@@ -63,12 +63,14 @@ def create_market_analyst_jadecap(llm, memory=None):
 Trade Date: {current_date} | Contracts = {max_loss} / (stop_points x ${point_value})
 
 FIRST: Call get_live_price(symbol="{ticker}") to know WHERE PRICE IS RIGHT NOW.
+>>> YOU MUST STATE THE CURRENT PRICE AS YOUR VERY FIRST OUTPUT LINE <<<
+Format: "Current Price: NQ = XXXXX.XX"
 This is critical — you need the current price to determine:
 - Premium or discount relative to midnight open
 - Whether price has reached your entry zone
 - Whether liquidity has been swept
 - R:R calculation from current price to target
-Note the current price and reference it throughout ALL steps.
+Reference the current price throughout ALL steps.
 
 FOLLOW ALL STEPS IN ORDER (STEP 0 through STEP 9). DO NOT SKIP ANY STEP.
 

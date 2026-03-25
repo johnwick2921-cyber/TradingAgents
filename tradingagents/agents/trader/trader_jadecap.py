@@ -81,8 +81,9 @@ def create_trader_jadecap(llm, memory):
             "content": f"""Based on a comprehensive analysis by a team of ICT analysts, here is the
 proposed investment plan for {company_name}. {instrument_context}
 
-LIVE PRICE (fetched right now): {live_price_str}
-CRITICAL: Verify entry is still valid at this price. If price has moved past entry zone, HOLD.
+>>> CURRENT PRICE: {live_price_str} <<<
+YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
+Verify entry is still valid at this price. If price has moved past entry zone, HOLD.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
 Proposed Investment Plan from Research Manager:
