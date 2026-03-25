@@ -29,7 +29,13 @@ _live_client = None
 # ── WebSocket clients subscribed to price updates ──────────────────
 _price_ws_clients: Set[WebSocket] = set()
 _price_ws_lock = threading.Lock()
-_event_loop = None  # set when first WS client connects
+_event_loop = None  # set once at app startup via init_event_loop()
+
+
+def init_event_loop(loop=None):
+    """Capture the event loop once at app startup. Call from lifespan."""
+    global _event_loop
+    _event_loop = loop or asyncio.get_running_loop()
 
 
 async def _get_configured_provider() -> str:
@@ -98,12 +104,11 @@ def _start_live_stream(symbols=None):
             equity_syms.append(clean)  # Stocks — not supported in live stream yet
     db_symbols = futures_db_syms  # Only futures go to GLBX.MDP3 live stream
 
-    if _live_stream_started:
-        # Already running — check if we need to add new symbols
-        # Databento Live doesn't support adding symbols after start,
-        # so we'd need to restart. For now, just return.
-        return
-    _live_stream_started = True
+    # Thread-safe check-and-set to prevent duplicate Databento connections
+    with _live_lock:
+        if _live_stream_started:
+            return
+        _live_stream_started = True
 
     api_key = os.environ.get("DATABENTO_API_KEY", "")
     if not api_key:
@@ -457,9 +462,10 @@ _ws_router = APIRouter()
 @_ws_router.websocket("/ws/prices/{symbol}")
 async def ws_price_stream(websocket: WebSocket, symbol: str):
     """Stream live price ticks via WebSocket. Falls back to polling if no Databento."""
-    global _event_loop
     await websocket.accept()
-    _event_loop = asyncio.get_running_loop()
+    # Ensure event loop is captured (idempotent fallback if init_event_loop wasn't called)
+    if _event_loop is None:
+        init_event_loop()
 
     # Try to start Databento live stream
     has_databento = bool(os.environ.get("DATABENTO_API_KEY"))
@@ -480,7 +486,7 @@ async def ws_price_stream(websocket: WebSocket, symbol: str):
             initial = await asyncio.to_thread(_get_price_for_ws, symbol)
             await websocket.send_json(initial)
         except Exception:
-            pass
+            logger.debug("Failed to send initial price for %s", symbol, exc_info=True)
 
         # Always poll as baseline — Databento live ticks override via broadcast
         # This ensures price updates even when live stream has no data (off-hours)
@@ -490,12 +496,12 @@ async def ws_price_stream(websocket: WebSocket, symbol: str):
                 data = await asyncio.to_thread(_get_price_for_ws, symbol)
                 await websocket.send_json(data)
             except Exception:
-                pass
+                logger.debug("Price poll failed for %s", symbol, exc_info=True)
 
     except (WebSocketDisconnect, asyncio.CancelledError):
-        pass
+        pass  # Normal disconnection — no logging needed
     except Exception:
-        pass
+        logger.debug("WebSocket error for %s", symbol, exc_info=True)
     finally:
         with _price_ws_lock:
             _price_ws_clients.discard(websocket)
@@ -516,12 +522,12 @@ def _get_price_for_ws(symbol: str) -> dict:
         try:
             return _get_price_databento_historical(symbol)
         except Exception:
-            pass
+            logger.debug("Databento historical fallback failed for %s", symbol, exc_info=True)
 
     # Try yfinance
     try:
         return _get_price_yfinance(symbol)
     except Exception:
-        pass
+        logger.debug("yfinance fallback failed for %s", symbol, exc_info=True)
 
     return {"symbol": symbol, "price": None, "error": "No price source available"}

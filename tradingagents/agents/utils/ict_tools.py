@@ -5,9 +5,13 @@ Wraps ict_indicators.py functions as @tools so the LLM can call them.
 Save to: tradingagents/agents/utils/ict_tools.py
 """
 
-from langchain_core.tools import tool
-from typing import Annotated
 import json
+import logging
+from typing import Annotated
+
+from langchain_core.tools import tool
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -412,8 +416,8 @@ def get_live_price(
                         f"  Source: {source}\n"
                         f"  Updated: {data.get('updated', 'N/A')}"
                     )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("WebUI price server unavailable: %s", e)
 
         # Method 2: Direct Databento if server not available
         api_key = os.environ.get("DATABENTO_API_KEY", "")
@@ -443,8 +447,8 @@ def get_live_price(
                         f"  Price NOW: {price:.2f}\n"
                         f"  Source: Databento Historical (15 min delayed)"
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Databento historical price failed: %s", e)
 
         # Method 3: yfinance fallback
         try:
@@ -459,8 +463,8 @@ def get_live_price(
                     f"  Price NOW: {float(last['Close']):.2f}\n"
                     f"  Source: yfinance (15-20 min delayed)"
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("yfinance price fallback failed: %s", e)
 
         return f"No price data available for {symbol}"
     except Exception as e:

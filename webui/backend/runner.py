@@ -934,10 +934,8 @@ class RunnerManager:
                     await memory_bridge.load_from_db()
                 except Exception:
                     pass  # Will reload on next server restart or next run
-        except Exception as e:
-            logger.warning("Failed to auto-save memories for run %s: %s", run_id, e)
-            import traceback
-            traceback.print_exc()
+        except Exception:
+            logger.exception("Failed to auto-save memories for run %s", run_id)
 
     def _save_failure(
         self,

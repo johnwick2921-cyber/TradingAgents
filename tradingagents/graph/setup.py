@@ -5,7 +5,21 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode
 
-from tradingagents.agents import *
+from tradingagents.agents import (
+    create_msg_delete,
+    create_fundamentals_analyst,
+    create_market_analyst,
+    create_news_analyst,
+    create_social_media_analyst,
+    create_bear_researcher,
+    create_bull_researcher,
+    create_aggressive_debator,
+    create_conservative_debator,
+    create_neutral_debator,
+    create_research_manager,
+    create_portfolio_manager,
+    create_trader,
+)
 from tradingagents.agents.utils.agent_states import AgentState
 
 from .conditional_logic import ConditionalLogic
@@ -40,7 +54,7 @@ class GraphSetup:
         self.conditional_logic = conditional_logic
 
     def setup_graph(
-        self, selected_analysts=["market", "social", "news", "fundamentals"]
+        self, selected_analysts=None,
     ):
         """Set up and compile the agent workflow graph.
 
@@ -51,6 +65,8 @@ class GraphSetup:
                 - "news": News analyst
                 - "fundamentals": Fundamentals analyst
         """
+        if selected_analysts is None:
+            selected_analysts = ["market", "social", "news", "fundamentals"]
         if len(selected_analysts) == 0:
             raise ValueError("Trading Agents Graph Setup Error: no analysts selected!")
 
@@ -133,14 +149,18 @@ class GraphSetup:
         else:
             trader_node = create_trader(self.quick_thinking_llm, self.trader_memory)
 
-        # Create risk analysis nodes
-        # TODO: Risk debaters (aggressive, conservative, neutral) use generic stock
-        # prompts even for JadeCap strategy. They still function but use stock-market
-        # language instead of ICT terminology. Create JadeCap-specific risk debaters
-        # for full ICT alignment.
-        aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
-        neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
-        conservative_analyst = create_conservative_debator(self.quick_thinking_llm)
+        # Create risk analysis nodes — use ICT-specific debaters for JadeCap
+        if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
+            from tradingagents.agents.risk_mgmt.aggressive_debator_jadecap import create_aggressive_debator_jadecap
+            from tradingagents.agents.risk_mgmt.conservative_debator_jadecap import create_conservative_debator_jadecap
+            from tradingagents.agents.risk_mgmt.neutral_debator_jadecap import create_neutral_debator_jadecap
+            aggressive_analyst = create_aggressive_debator_jadecap(self.quick_thinking_llm)
+            neutral_analyst = create_neutral_debator_jadecap(self.quick_thinking_llm)
+            conservative_analyst = create_conservative_debator_jadecap(self.quick_thinking_llm)
+        else:
+            aggressive_analyst = create_aggressive_debator(self.quick_thinking_llm)
+            neutral_analyst = create_neutral_debator(self.quick_thinking_llm)
+            conservative_analyst = create_conservative_debator(self.quick_thinking_llm)
         if self.config.get("strategy") in ("jadecap", "jadecap_ict"):
             from tradingagents.agents.managers.portfolio_manager_jadecap import create_portfolio_manager_jadecap
             portfolio_manager_node = create_portfolio_manager_jadecap(

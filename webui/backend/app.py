@@ -34,6 +34,9 @@ async def lifespan(app):
     # Load saved memories from SQLite into BM25 instances
     from webui.backend.memory_bridge import memory_bridge
     await memory_bridge.load_from_db()
+    # Capture event loop once at startup for background thread → async bridge
+    from webui.backend.routes.prices import init_event_loop
+    init_event_loop()
     # Start Databento live price stream on server startup (not just on WS connect)
     if os.environ.get("DATABENTO_API_KEY"):
         try:
@@ -80,9 +83,10 @@ if os.path.isdir(_FRONTEND_DIST):
     @app.get("/{full_path:path}")
     async def serve_spa(request: Request, full_path: str) -> FileResponse:
         """Serve index.html for any non-API route (SPA catch-all)."""
-        # If the path points to an actual file in dist, serve it
-        file_path = os.path.join(_FRONTEND_DIST, full_path)
-        if full_path and os.path.isfile(file_path):
+        # Security: resolve real paths to prevent directory traversal
+        abs_dist = os.path.realpath(_FRONTEND_DIST)
+        file_path = os.path.realpath(os.path.join(_FRONTEND_DIST, full_path))
+        if full_path and file_path.startswith(abs_dist + os.sep) and os.path.isfile(file_path):
             return FileResponse(file_path)
         # Otherwise serve the SPA entry point
         return FileResponse(os.path.join(_FRONTEND_DIST, "index.html"))

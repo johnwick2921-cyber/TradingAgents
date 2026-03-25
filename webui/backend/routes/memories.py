@@ -133,13 +133,14 @@ async def list_memories(agent: str) -> dict:
 async def search_memories(agent: str, q: str = Query(..., min_length=1)) -> dict:
     _validate_agent(agent)
 
-    pattern = f"%{q}%"
+    escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    pattern = f"%{escaped}%"
     async with get_db() as db:
         cursor = await db.execute(
             """
             SELECT * FROM memories
             WHERE agent_name = ?
-              AND (situation LIKE ? OR recommendation LIKE ?)
+              AND (situation LIKE ? ESCAPE '\\' OR recommendation LIKE ? ESCAPE '\\')
             ORDER BY created_at DESC
             """,
             (agent, pattern, pattern),

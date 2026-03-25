@@ -10,7 +10,21 @@ from langgraph.prebuilt import ToolNode
 
 from tradingagents.llm_clients import create_llm_client
 
-from tradingagents.agents import *
+from tradingagents.agents import (
+    create_msg_delete,
+    create_fundamentals_analyst,
+    create_market_analyst,
+    create_news_analyst,
+    create_social_media_analyst,
+    create_bear_researcher,
+    create_bull_researcher,
+    create_aggressive_debator,
+    create_conservative_debator,
+    create_neutral_debator,
+    create_research_manager,
+    create_portfolio_manager,
+    create_trader,
+)
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.agents.utils.memory import FinancialSituationMemory
 from tradingagents.agents.utils.agent_states import (
@@ -45,9 +59,9 @@ class TradingAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["market", "social", "news", "fundamentals"],
-        debug=False,
-        config: Dict[str, Any] = None,
+        selected_analysts: Optional[List[str]] = None,
+        debug: bool = False,
+        config: Optional[Dict[str, Any]] = None,
         callbacks: Optional[List] = None,
     ):
         """Initialize the trading agents graph and components.
@@ -58,6 +72,8 @@ class TradingAgentsGraph:
             config: Configuration dictionary. If None, uses default config
             callbacks: Optional list of callback handlers (e.g., for tracking LLM/tool stats)
         """
+        if selected_analysts is None:
+            selected_analysts = ["market", "social", "news", "fundamentals"]
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
         self.callbacks = callbacks or []
