@@ -422,6 +422,23 @@ def get_killzone_status(current_time: datetime = None) -> str:
     """Kill Zone timer and AMD phase check."""
     now_est = _to_est(current_time) if current_time else datetime.now(EST)
     current_hm = now_est.strftime("%H:%M")
+    weekday = now_est.weekday()  # 0=Mon, 5=Sat, 6=Sun
+    t_min = now_est.hour * 60 + now_est.minute
+
+    # Weekend: Sat all day, Sun before 6PM, Fri after 5PM
+    is_weekend = (
+        weekday == 5
+        or (weekday == 6 and t_min < 18 * 60)
+        or (weekday == 4 and t_min >= 17 * 60)
+    )
+    if is_weekend:
+        open_day = "today at 6PM EST" if weekday == 6 else "Sunday 6PM EST"
+        return (
+            f"\n## Kill Zone Status\n"
+            f"  Current Time (EST): {current_hm} ({now_est.strftime('%A')})\n"
+            f"  FUTURES CLOSED (weekend). Opens {open_day}.\n"
+            f"  Can Trade: NO\n"
+        )
 
     # ── Kill Zone ──
     active_kz = None
@@ -1087,18 +1104,31 @@ def calc_breaker_block(df):
 def calc_amd_phase():
     """Determine current AMD phase based on EST time.
 
-    NQ/ES futures trade 23 hours: Sun 6PM - Fri 5PM EST.
-    Only closed 5:00-6:00 PM EST daily (1-hour maintenance).
+    NQ/ES futures trade Sun 6PM - Fri 5PM EST.
+    Closed: Friday 5PM through Sunday 6PM (weekend).
+    Closed: Daily 5-6PM EST (1-hour maintenance, Mon-Thu only).
 
     Accumulation = Asia (6PM-2AM), Manipulation = London (2-8AM),
-    Distribution = NY (8AM-5PM), Closed = Maintenance (5-6PM).
+    Distribution = NY (8AM-5PM).
     """
     from datetime import datetime, timezone, timedelta
     est = timezone(timedelta(hours=-5))
     now = datetime.now(est)
+    weekday = now.weekday()  # 0=Mon, 5=Sat, 6=Sun
     hour, minute = now.hour, now.minute
     t = hour * 60 + minute
-    if 17*60 <= t < 18*60:  # 5PM-6PM — only 1 hour closed
+
+    # Weekend check: closed all Saturday, closed Sunday until 6PM
+    if weekday == 5:  # Saturday — fully closed
+        return {"phase": "closed", "session": "weekend", "action": "Futures closed (weekend). Opens Sunday 6PM EST."}
+    if weekday == 6 and t < 18*60:  # Sunday before 6PM — still closed
+        return {"phase": "closed", "session": "weekend", "action": "Futures closed (weekend). Opens today at 6PM EST."}
+    # Friday after 5PM — closed for weekend
+    if weekday == 4 and t >= 17*60:
+        return {"phase": "closed", "session": "weekend", "action": "Futures closed (weekend). Opens Sunday 6PM EST."}
+
+    # Daily maintenance: 5-6PM Mon-Thu
+    if 17*60 <= t < 18*60:
         return {"phase": "closed", "session": "maintenance", "action": "Futures closed (daily maintenance 5-6PM EST). Review and prepare."}
     elif t >= 18*60 or t < 0:  # 6PM-midnight
         return {"phase": "accumulation", "session": "asia", "action": "DO NOT TRADE. Mark Asia range H/L."}
