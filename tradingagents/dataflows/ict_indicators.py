@@ -1086,25 +1086,30 @@ def calc_breaker_block(df):
 
 def calc_amd_phase():
     """Determine current AMD phase based on EST time.
-    Accumulation = Asia (8PM-12AM), Manipulation = London (2-5AM),
-    Distribution = NY (9:30AM-4PM)."""
+
+    NQ/ES futures trade 23 hours: Sun 6PM - Fri 5PM EST.
+    Only closed 5:00-6:00 PM EST daily (1-hour maintenance).
+
+    Accumulation = Asia (6PM-2AM), Manipulation = London (2-8AM),
+    Distribution = NY (8AM-5PM), Closed = Maintenance (5-6PM).
+    """
     from datetime import datetime, timezone, timedelta
     est = timezone(timedelta(hours=-5))
     now = datetime.now(est)
     hour, minute = now.hour, now.minute
     t = hour * 60 + minute
-    if t >= 20*60 or t < 0:  # 8PM-midnight
-        return {"phase": "accumulation", "session": "asia", "action": "DO NOT TRADE. Mark range H/L."}
+    if 17*60 <= t < 18*60:  # 5PM-6PM — only 1 hour closed
+        return {"phase": "closed", "session": "maintenance", "action": "Futures closed (daily maintenance 5-6PM EST). Review and prepare."}
+    elif t >= 18*60 or t < 0:  # 6PM-midnight
+        return {"phase": "accumulation", "session": "asia", "action": "DO NOT TRADE. Mark Asia range H/L."}
     elif 0 <= t < 2*60:  # midnight-2AM
-        return {"phase": "accumulation", "session": "asia_late", "action": "Mark overnight levels."}
+        return {"phase": "accumulation", "session": "asia_late", "action": "Mark overnight levels. Range building."}
     elif 2*60 <= t < 5*60:  # 2-5AM
         return {"phase": "manipulation", "session": "london", "action": "Note London sweep direction. Confirms NY bias."}
-    elif 5*60 <= t < 9*60+30:  # 5AM-9:30AM
-        return {"phase": "pre_distribution", "session": "pre_market", "action": "Map swing points. Prepare for NY open."}
-    elif 9*60+30 <= t < 16*60:  # 9:30AM-4PM
-        return {"phase": "distribution", "session": "ny", "action": "EXECUTE. JadeCap entry window. Use Kill Zones."}
-    elif 16*60 <= t < 20*60:  # 4PM-8PM
-        return {"phase": "post_market", "session": "closed", "action": "Market closed. Review and prepare for tomorrow."}
+    elif 5*60 <= t < 8*60:  # 5-8AM
+        return {"phase": "manipulation", "session": "london_late", "action": "London continuation. Map any FVGs left for NY draw targets."}
+    elif 8*60 <= t < 17*60:  # 8AM-5PM
+        return {"phase": "distribution", "session": "ny", "action": "EXECUTE. JadeCap primary session. Use Kill Zones for entry."}
     return {"phase": "unknown", "session": "unknown", "action": "Check time."}
 
 
