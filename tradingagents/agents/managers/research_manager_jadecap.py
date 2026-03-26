@@ -36,8 +36,17 @@ def create_research_manager_jadecap(llm, memory):
         fundamentals_report = state["fundamentals_report"]
 
         # active config
-        active      = JADECAP_CONFIG["active_instrument"]
-        instrument  = INSTRUMENTS[active]
+        ticker_clean = (state.get("company_of_interest", "") or "").upper().replace("=F", "").strip()
+        if ticker_clean in INSTRUMENTS:
+            active = ticker_clean
+            instrument = INSTRUMENTS[active]
+        else:
+            active = ticker_clean or JADECAP_CONFIG["active_instrument"]
+            instrument = INSTRUMENTS.get(active, {
+                "ticker": active, "databento_sym": f"{active}.c.0",
+                "point_value": 20, "tick_size": 0.25, "tick_value": 5.00,
+                "description": f"{active} Futures",
+            })
         point_value = instrument["point_value"]
         max_loss    = RISK["max_loss_per_trade"]
         min_rr      = RISK["min_rr"]

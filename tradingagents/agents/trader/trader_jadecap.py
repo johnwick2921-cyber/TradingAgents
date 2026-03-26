@@ -45,8 +45,17 @@ def create_trader_jadecap(llm, memory):
             past_memory_str = "No past memories found."
 
         # active config
-        active = JADECAP_CONFIG["active_instrument"]
-        instrument = INSTRUMENTS[active]
+        ticker_clean = (company_name or "").upper().replace("=F", "").strip()
+        if ticker_clean in INSTRUMENTS:
+            active = ticker_clean
+            instrument = INSTRUMENTS[active]
+        else:
+            active = ticker_clean or JADECAP_CONFIG["active_instrument"]
+            instrument = INSTRUMENTS.get(active, {
+                "ticker": active, "databento_sym": f"{active}.c.0",
+                "point_value": 20, "tick_size": 0.25, "tick_value": 5.00,
+                "description": f"{active} Futures",
+            })
         point_value = instrument["point_value"]
         max_loss = RISK["max_loss_per_trade"]
         min_rr = RISK["min_rr"]

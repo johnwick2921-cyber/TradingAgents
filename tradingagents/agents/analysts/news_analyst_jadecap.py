@@ -33,8 +33,17 @@ def create_news_analyst_jadecap(llm, memory=None):
         current_date = state["trade_date"]
         ticker       = state["company_of_interest"]
 
-        active      = JADECAP_CONFIG["active_instrument"]
-        instrument  = INSTRUMENTS[active]
+        ticker_clean = (ticker or "").upper().replace("=F", "").strip()
+        if ticker_clean in INSTRUMENTS:
+            active = ticker_clean
+            instrument = INSTRUMENTS[active]
+        else:
+            active = ticker_clean or JADECAP_CONFIG["active_instrument"]
+            instrument = INSTRUMENTS.get(active, {
+                "ticker": active, "databento_sym": f"{active}.c.0",
+                "point_value": 20, "tick_size": 0.25, "tick_value": 5.00,
+                "description": f"{active} Futures",
+            })
         active_firm = JADECAP_CONFIG["active_firm"]
 
         # BM25 memory — past news analysis lessons

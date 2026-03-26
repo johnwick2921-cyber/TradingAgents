@@ -22,8 +22,22 @@ def create_market_analyst_jadecap(llm, memory=None):
     def jadecap_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
-        active = JADECAP_CONFIG["active_instrument"]
-        instrument = INSTRUMENTS[active]
+        # Use the actual ticker entered by user, not hardcoded config
+        ticker_clean = ticker.upper().replace("=F", "").strip()
+        if ticker_clean in INSTRUMENTS:
+            active = ticker_clean
+            instrument = INSTRUMENTS[active]
+        else:
+            # Unknown instrument — use generic config with the user's ticker
+            active = ticker_clean
+            instrument = {
+                "ticker": ticker,
+                "databento_sym": f"{ticker_clean}.c.0",
+                "point_value": 20,  # default — user should configure in Settings
+                "tick_size": 0.25,
+                "tick_value": 5.00,
+                "description": f"{ticker_clean} Futures",
+            }
         point_value = instrument["point_value"]
         max_loss = RISK["max_loss_per_trade"]
         daily_target = RISK["daily_profit_target"]
