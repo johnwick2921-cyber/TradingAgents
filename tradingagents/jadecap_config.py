@@ -1703,26 +1703,26 @@ HOLIDAY_RULES = {
 # =====================================================================
 
 TRADE_OUTPUT_FORMAT = """
-TRADE PLAN:
-Current Price: [exact live price — MUST fill this in]
+TRADE PLAN (fill in EVERY field — even for NO TRADE):
+Current Price: [REQUIRED — always show the >>> CURRENT PRICE from above, even if NO TRADE]
 Direction:    LONG / SHORT / NO TRADE
-Entry:        [exact price or condition]
-Stop Loss:    [exact price — behind OB or candle 1 of FVG]
-Target 1:     [price — first liquidity pool] — close 50% here
-Target 2:     [price — PDH or PDL] — move stop to breakeven
-Stop Points:  [number] points
-Risk:         $[amount] ([contracts] x [points] x $[point_value])
-Contracts:    [number]
-R:R Ratio:    [number]:1
-Kill Zone:    AM 9:30-11:30 / Silver Bullet 10-11 / PM 1:00-4:00 / SB2 2-3
+Entry:        [exact price or N/A if NO TRADE]
+Stop Loss:    [exact price or N/A]
+Target 1:     [price — first liquidity pool] / N/A
+Target 2:     [price — PDH or PDL] / N/A
+Stop Points:  [number] / N/A
+Risk:         $[amount] / $0
+Contracts:    [number] / 0
+R:R Ratio:    [number]:1 / N/A
+Kill Zone:    [which window or "Outside KZ — market OPEN, waiting for next window"]
 A+ Score:     [X/10] — [Full Size / Half Size / Marginal / NO TRADE]
 SFP Status:   CONFIRMED at [price] on 1H / NOT YET / NO SFP TODAY
 Draw on Liquidity: [target price] — [reason]
 NDOG Level:   [price] (50% CE) / N/A
 NWOG Level:   [price] (50% CE) / N/A (Monday only)
-Invalidation: [exact price action that cancels this setup]
-AMD Phase:    Accumulation / Manipulation / Distribution
-Checklist:    [all 14 items PASS or FAIL]
+Invalidation: [exact price action] / N/A
+AMD Phase:    [from calc_amd_phase — use ACTUAL session not just "Distribution"]
+Checklist:    [X/14 PASS — list all 14]
 
 FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL**
 """
