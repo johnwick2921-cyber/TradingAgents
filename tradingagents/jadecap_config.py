@@ -1704,6 +1704,7 @@ HOLIDAY_RULES = {
 
 TRADE_OUTPUT_FORMAT = """
 TRADE PLAN:
+Current Price: [exact live price — MUST fill this in]
 Direction:    LONG / SHORT / NO TRADE
 Entry:        [exact price or condition]
 Stop Loss:    [exact price — behind OB or candle 1 of FVG]

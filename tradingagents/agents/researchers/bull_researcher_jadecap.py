@@ -293,9 +293,10 @@ HARD RULES — if ANY of these fail -> output NO LONG SETUP:
 PAST LESSONS — apply these to your argument:
 {past_memory_str}
 
-OUTPUT FORMAT:
-Start with: Long Setup Analyst:
-FIRST LINE MUST STATE: "Current Price: [exact price from LIVE PRICE above]"
+OUTPUT FORMAT (follow EXACTLY):
+Long Setup Analyst:
+## Current Price: [exact number from >>> CURRENT PRICE above]
+Then cover each of the 11 points.
 
 Then cover each of the 11 points above with specific evidence.
 Use exact price levels from the market report.

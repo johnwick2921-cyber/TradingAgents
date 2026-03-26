@@ -236,7 +236,10 @@ PAST MARKET ANALYSIS LESSONS — learn from these:
 {past_memory_str}
 Apply these lessons to improve your analysis. Avoid past mistakes. Repeat what worked.
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (follow this EXACTLY — do not skip any section):
+## Current Price
+NQ = [price] (source, time)
+
 ## SFP Detection (status, swept level, direction)
 ## AMD Phase
 ## HTF Bias
