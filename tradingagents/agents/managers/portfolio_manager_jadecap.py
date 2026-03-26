@@ -100,7 +100,6 @@ def create_portfolio_manager_jadecap(llm, memory):
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
 >>> CURRENT PRICE: {live_price_str} <<<
-YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
 If price has moved significantly since the trader's analysis, reassess entry validity.
 
 {instrument_context}

@@ -90,8 +90,7 @@ def create_bear_researcher_jadecap(llm, memory):
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 
 >>> CURRENT PRICE: {live_price_str} <<<
-YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
-Use this price — NOT the market report price — for all zone/R:R calculations.
+Use this price for all zone/R:R calculations.
 
 Your ONLY job: Build the strongest possible case for a SHORT trade right now
 using ICT evidence from the analyst reports. Be specific — use exact prices.

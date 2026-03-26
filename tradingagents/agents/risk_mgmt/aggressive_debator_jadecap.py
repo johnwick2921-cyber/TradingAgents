@@ -33,7 +33,6 @@ def create_aggressive_debator_jadecap(llm):
         prompt = f"""You are the JadeCap Aggressive Risk Analyst for NQ/ES Futures using ICT methodology.
 
 >>> CURRENT PRICE: {live_price_str} <<<
-STATE THIS PRICE IN YOUR FIRST LINE.
 
 Your role: CHAMPION the trade when ICT confluence is strong. Argue FOR execution.
 You push back against excessive caution that would cause missed A+ setups.

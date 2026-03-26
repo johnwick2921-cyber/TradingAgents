@@ -91,7 +91,6 @@ def create_trader_jadecap(llm, memory):
 proposed investment plan for {company_name}. {instrument_context}
 
 >>> CURRENT PRICE: {live_price_str} <<<
-YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
 Verify entry is still valid at this price. If price has moved past entry zone, HOLD.
 Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 

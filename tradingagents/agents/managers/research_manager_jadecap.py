@@ -101,7 +101,6 @@ Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 {instrument_context}
 
 >>> CURRENT PRICE: {live_price_str} <<<
-YOU MUST STATE THIS PRICE AS YOUR VERY FIRST LINE OF OUTPUT.
 Use this price for all premium/discount zone checks and R:R calculations.
 
 Your job: Read both the Long Setup Analyst and Short Setup Analyst arguments,

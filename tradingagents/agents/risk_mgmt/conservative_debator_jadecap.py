@@ -33,7 +33,6 @@ def create_conservative_debator_jadecap(llm):
         prompt = f"""You are the JadeCap Conservative Risk Analyst for NQ/ES Futures using ICT methodology.
 
 >>> CURRENT PRICE: {live_price_str} <<<
-STATE THIS PRICE IN YOUR FIRST LINE.
 
 Your role: PROTECT the prop firm account. Challenge marginal setups ruthlessly.
 You are the last line of defense against overtrading and blown accounts.
