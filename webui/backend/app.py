@@ -83,10 +83,20 @@ if os.path.isdir(_FRONTEND_DIST):
     @app.get("/{full_path:path}")
     async def serve_spa(request: Request, full_path: str) -> FileResponse:
         """Serve index.html for any non-API route (SPA catch-all)."""
+        from starlette.responses import Response
+
         # Security: resolve real paths to prevent directory traversal
         abs_dist = os.path.realpath(_FRONTEND_DIST)
         file_path = os.path.realpath(os.path.join(_FRONTEND_DIST, full_path))
         if full_path and file_path.startswith(abs_dist + os.sep) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        # Otherwise serve the SPA entry point
-        return FileResponse(os.path.join(_FRONTEND_DIST, "index.html"))
+            # Assets have hashes in filenames — cache them long
+            resp = FileResponse(file_path)
+            if "/assets/" in full_path:
+                resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            return resp
+        # index.html — never cache so browser always loads latest build
+        resp = FileResponse(os.path.join(_FRONTEND_DIST, "index.html"))
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
