@@ -248,19 +248,22 @@ YOUR ARGUMENT MUST COVER ALL OF THESE:
    - SFPs are unreliable on holidays — weight SFP evidence lower
    - If holiday: recommend HALF SIZE maximum regardless of A+ score
 
-10. HARD RULE CHECKLIST — state PASS or FAIL for each:
-   - HTF bias bullish: PASS/FAIL
-   - Price in DISCOUNT not premium: PASS/FAIL (NEVER buy in premium)
-   - Liquidity (SSL) swept: PASS/FAIL
-   - Displacement candle present: PASS/FAIL
-   - Inside Kill Zone: PASS/FAIL
-   - Minimum {min_rr}:1 R:R available: PASS/FAIL
-   - PDH not already taken today: PASS/FAIL
-   - Daily profit under $1000: PASS/FAIL
-   - AMD in Distribution phase (NOT Accumulation): PASS/FAIL
-   - Only 1 trade this Kill Zone: PASS/FAIL
-   - Hard close by 4:00 PM EST: CONFIRM
-   - If ANY FAIL -> output NO LONG SETUP
+10. HARD RULE CHECKLIST — all 14 items, state PASS or FAIL:
+   [1] HTF bias bullish: PASS/FAIL
+   [2] Price in DISCOUNT not premium: PASS/FAIL
+   [3] Liquidity (SSL) swept: PASS/FAIL
+   [4] Displacement candle present: PASS/FAIL
+   [5] LTF PD Array identified (FVG/OB on 5m/15m): PASS/FAIL
+   [6] Inside Kill Zone: PASS/FAIL
+   [7] Minimum {min_rr}:1 R:R available: PASS/FAIL
+   [8] PDH not already taken today: PASS/FAIL
+   [9] Daily profit under $1000: PASS/FAIL
+   [10] Daily loss under $500: PASS/FAIL
+   [11] 1H SFP confirmed: PASS/FAIL
+   [12] Draw on Liquidity identified: PASS/FAIL
+   [13] A+ score calculated (min 4/10): PASS/FAIL
+   [14] Not in midday chop zone (11:30-1:00): PASS/FAIL
+   If ANY FAIL -> output NO LONG SETUP
 
 10.5 A+ SCORE CALCULATION (Weighted 1-10, max 10)
    [+2] HTF + LTF Alignment (all TFs bullish): YES/NO
