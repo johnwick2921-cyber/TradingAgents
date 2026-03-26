@@ -665,18 +665,23 @@ class RunnerManager:
             report_sections["_bull_hist"] = bull_hist
             self.add_event({
                 "type": "agent_status",
-                "data": {"agent": "Bull Researcher", "status": "in_progress"},
+                "data": {"agent": "Bull Researcher", "status": "completed"},
             })
             self.add_event({
                 "type": "report_section",
                 "data": {"section": "bull_analysis", "content": f"### Bull Researcher Analysis\n{bull_hist}"},
+            })
+            # Bear is next
+            self.add_event({
+                "type": "agent_status",
+                "data": {"agent": "Bear Researcher", "status": "in_progress"},
             })
 
         if bear_hist and bear_hist != report_sections.get("_bear_hist"):
             report_sections["_bear_hist"] = bear_hist
             self.add_event({
                 "type": "agent_status",
-                "data": {"agent": "Bear Researcher", "status": "in_progress"},
+                "data": {"agent": "Bear Researcher", "status": "completed"},
             })
             self.add_event({
                 "type": "report_section",
