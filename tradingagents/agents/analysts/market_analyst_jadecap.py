@@ -58,13 +58,21 @@ def create_market_analyst_jadecap(llm, memory=None):
 
         tools = ICT_TOOLS
 
+        # Pre-fetch live price so it's in the prompt — LLM can't skip it
+        live_price_str = "Live price unavailable"
+        try:
+            from tradingagents.agents.utils.ict_tools import get_live_price
+            live_price_str = get_live_price.invoke({"symbol": ticker})
+        except Exception:
+            pass
+
         system_message = f"""You are a JadeCap ICT Market Analyst for {active} Futures.
 {instrument['description']} | Point Value: ${point_value} | Max Risk: ${max_loss} | Min R:R: {min_rr}:1
 Trade Date: {current_date} | Contracts = {max_loss} / (stop_points x ${point_value})
 
-FIRST: Call get_live_price(symbol="{ticker}") to know WHERE PRICE IS RIGHT NOW.
->>> YOU MUST STATE THE CURRENT PRICE AS YOUR VERY FIRST OUTPUT LINE <<<
-Format: "Current Price: NQ = XXXXX.XX"
+{live_price_str}
+^^^ THIS IS THE CURRENT PRICE. Reference it in EVERY step below. ^^^
+
 This is critical — you need the current price to determine:
 - Premium or discount relative to midnight open
 - Whether price has reached your entry zone
